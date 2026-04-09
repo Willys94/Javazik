@@ -4,61 +4,55 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Album {
-    int id;
-    String titre;
-    int annee;
-    List<Morceau> albums = new ArrayList<>();
-    String interprete;
+    private int id;
+    private String titre;
+    private int annee;
+    private List<Morceau> morceaux;
+    private Interprete interprete;
 
-    public Album(int id, String titre, int annee, String interprete) {
+    public Album(int id, String titre, int annee, Interprete interprete) {
         this.id = id;
         this.titre = titre;
         this.annee = annee;
-        this.albums = new ArrayList<>();
         this.interprete = interprete;
+        this.morceaux = new ArrayList<>();
     }
 
     public void ajouterMorceau(Morceau morceau) {
-        this.albums.add(morceau);
+        if (morceau != null && !morceaux.contains(morceau)) {
+            morceaux.add(morceau);
+        }
     }
 
     public int getId() {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public String getTitre() {
         return titre;
-    }
-
-    public void setTitre(String titre) {
-        this.titre = titre;
     }
 
     public int getAnnee() {
         return annee;
     }
 
+    public List<Morceau> getMorceaux() {
+        return morceaux;
+    }
+
+    public Interprete getInterprete() {
+        return interprete;
+    }
+
+    public void setTitre(String titre) {
+        this.titre = titre;
+    }
+
     public void setAnnee(int annee) {
         this.annee = annee;
     }
 
-    public List<Morceau> getAlbums() {
-        return albums;
-    }
-
-    public void setAlbums(List<Morceau> albums) {
-        this.albums = albums;
-    }
-
-    public String getInterprete() {
-        return interprete;
-    }
-
-    public void setInterprete(String interprete) {
+    public void setInterprete(Interprete interprete) {
         this.interprete = interprete;
     }
 
@@ -68,7 +62,8 @@ public class Album {
                 "id=" + id +
                 ", titre='" + titre + '\'' +
                 ", annee=" + annee +
-                ", albums=" + albums +
+                ", interprete=" + interprete.getNom() +
+                ", nbMorceaux=" + morceaux.size() +
                 '}';
     }
 }
