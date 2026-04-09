@@ -1,13 +1,19 @@
 package classes;
 
 public class Artiste implements Interprete {
-    String nom;
+    private String nom;
 
     public Artiste(String nom) {
         this.nom = nom;
     }
+
+    @Override
     public String getNom() {
         return nom;
     }
-}
 
+    @Override
+    public String toString() {
+        return nom;
+    }
+}

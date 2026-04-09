@@ -1,21 +1,64 @@
 package classes;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Abonne extends Utilisateurs {
+    private List<Playlist> playlists;
+    private List<Morceau> historique;
+    private Map<Morceau, Integer> nbEcoutesParMorceau;
+    private boolean suspendu;
 
-    List<Playlist> playlist;
-    List<Morceau> historique;
-
-    public Abonne(int id,String login,String pw ) {
-        this.playlist = new ArrayList<>();
+    public Abonne(int id, String login, String pw) {
+        super(id, login, pw);
+        this.playlists = new ArrayList<>();
         this.historique = new ArrayList<>();
-        super(id,login,pw);
+        this.nbEcoutesParMorceau = new HashMap<>();
+        this.suspendu = false;
     }
 
-    public void creerPlaylist(){
+    public void ajouterPlaylist(Playlist playlist) {
+        if (playlist != null && !playlists.contains(playlist)) {
+            playlists.add(playlist);
+        }
+    }
 
+    public void supprimerPlaylist(Playlist playlist) {
+        playlists.remove(playlist);
+    }
+
+    public List<Playlist> getPlaylists() {
+        return playlists;
+    }
+
+    public void ecouterMorceau(Morceau morceau) {
+        if (morceau != null) {
+            historique.add(morceau);
+            nbEcoutesParMorceau.put(morceau, nbEcoutesParMorceau.getOrDefault(morceau, 0) + 1);
+            morceau.incrementerEcoutes();
+        }
+    }
+
+    public List<Morceau> getHistorique() {
+        return historique;
+    }
+
+    public int getNbEcoutesMorceau(Morceau morceau) {
+        return nbEcoutesParMorceau.getOrDefault(morceau, 0);
+    }
+
+    public boolean estSuspendu() {
+        return suspendu;
+    }
+
+    public void suspendre() {
+        this.suspendu = true;
+    }
+
+    public void reactiver() {
+        this.suspendu = false;
     }
 
     @Override
@@ -23,7 +66,8 @@ public class Abonne extends Utilisateurs {
         return "Abonne{" +
                 "id=" + id +
                 ", login='" + login + '\'' +
-                ", pw='" + pw + '\'' +
+                ", suspendu=" + suspendu +
+                ", nbPlaylists=" + playlists.size() +
                 '}';
     }
 }

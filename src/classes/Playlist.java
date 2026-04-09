@@ -2,40 +2,49 @@ package classes;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 public class Playlist {
-    String nom;
-    List<Morceau> morceaux;
-    Abonne proprietaire;
+    private String nom;
+    private List<Morceau> morceaux;
+    private Abonne proprietaire;
 
     public Playlist(String nom, Abonne proprietaire) {
         this.nom = nom;
-        this.morceaux = new ArrayList<>();
         this.proprietaire = proprietaire;
+        this.morceaux = new ArrayList<>();
     }
 
     public void ajouterMorceau(Morceau morceau) {
-        this.morceaux.add(morceau);
+        if (morceau != null && !morceaux.contains(morceau)) {
+            morceaux.add(morceau);
+        }
     }
 
     public void retirerMorceau(Morceau morceau) {
-        this.morceaux.remove(morceau);
+        morceaux.remove(morceau);
     }
 
-    public String renommer() {
-        System.out.println("Saisissez le nouveau nom");
-        Scanner clavier = new Scanner(System.in);
-        return this.nom = clavier.nextLine();
+    public void renommer(String nouveauNom) {
+        this.nom = nouveauNom;
+    }
+
+    public String getNom() {
+        return nom;
+    }
+
+    public List<Morceau> getMorceaux() {
+        return morceaux;
+    }
+
+    public Abonne getProprietaire() {
+        return proprietaire;
     }
 
     @Override
     public String toString() {
         return "Playlist{" +
                 "nom='" + nom + '\'' +
-                ", morceaux=" + morceaux +
-                ", proprietaire=" + proprietaire +
+                ", nbMorceaux=" + morceaux.size() +
                 '}';
     }
-
 }

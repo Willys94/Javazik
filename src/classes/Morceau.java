@@ -1,22 +1,19 @@
 package classes;
 
-import java.util.Scanner;
-
 public class Morceau {
-    int id;
-    String titre;
-    int duree;
-    String style;
-    int nbEcoutes;
-    String interprete;
+    private int id;
+    private String titre;
+    private int duree;
+    private String style;
+    private int nbEcoutes;
+    private Interprete interprete;
 
-    public Morceau(int id, String titre, int duree, String style, int nbEcoutes, String interprete) {
+    public Morceau(int id, String titre, int duree, String style, int nbEcoutes, Interprete interprete) {
         this.id = id;
         this.titre = titre;
-        this.style = style;
         this.duree = duree;
-        this.nbEcoutes = 0;
         this.style = style;
+        this.nbEcoutes = nbEcoutes;
         this.interprete = interprete;
     }
 
@@ -24,52 +21,55 @@ public class Morceau {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public String getTitre() {
         return titre;
-    }
-
-    public void setTitre(String titre) {
-        this.titre = titre;
     }
 
     public int getDuree() {
         return duree;
     }
 
-    public void setDuree(int duree) {
-        this.duree = duree;
-    }
-
     public String getStyle() {
         return style;
-    }
-
-    public void setStyle(String style) {
-        this.style = style;
     }
 
     public int getNbEcoutes() {
         return nbEcoutes;
     }
 
-    public void setNbEcoutes(int nbEcoutes) {
-        this.nbEcoutes = nbEcoutes;
+    public Interprete getInterprete() {
+        return interprete;
     }
 
-
-
-    public String toString(){
-        return "Morceau: " + titre +
-                " | Genre: " + style +
-                " | Durée: " + duree +
-                " | Interprete: " + interprete;
+    public void setTitre(String titre) {
+        this.titre = titre;
     }
 
-    public void incrementerEcoutes(){
+    public void setDuree(int duree) {
+        this.duree = duree;
+    }
+
+    public void setStyle(String style) {
+        this.style = style;
+    }
+
+    public void setInterprete(Interprete interprete) {
+        this.interprete = interprete;
+    }
+
+    public void incrementerEcoutes() {
         this.nbEcoutes++;
+    }
+
+    @Override
+    public String toString() {
+        return "Morceau{" +
+                "id=" + id +
+                ", titre='" + titre + '\'' +
+                ", duree=" + duree +
+                ", style='" + style + '\'' +
+                ", nbEcoutes=" + nbEcoutes +
+                ", interprete=" + interprete.getNom() +
+                '}';
     }
 }
