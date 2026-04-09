@@ -1,5 +1,7 @@
 package classes;
 
+import java.util.Scanner;
+
 public class Morceau {
     int id;
     String titre;
@@ -8,13 +10,14 @@ public class Morceau {
     int nbEcoutes;
     String interprete;
 
-    Morceau(int id, String titre, int duree, String style,int nbEcoutes, String interprete) {
+    public Morceau(int id, String titre, int duree, String style, int nbEcoutes, String interprete) {
         this.id = id;
         this.titre = titre;
         this.style = style;
         this.duree = duree;
         this.nbEcoutes = 0;
         this.style = style;
+        this.interprete = interprete;
     }
 
     public int getId() {
@@ -56,6 +59,8 @@ public class Morceau {
     public void setNbEcoutes(int nbEcoutes) {
         this.nbEcoutes = nbEcoutes;
     }
+
+
 
     public String toString(){
         return "Morceau: " + titre +
