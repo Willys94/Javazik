@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+
 public class Main {
 
     public static void main(String[] args) {
@@ -13,35 +14,19 @@ public class Main {
 
         Catalogue catalogue = new Catalogue();
 
-        List<Abonne> abonnes = new ArrayList<>();
-        List<Administrateur> administrateurs = new ArrayList<>();
 
-        Abonne abonne1 = new Abonne(1, "willys", "0000");
-        Abonne abonne2 = new Abonne(2, "alice", "1111");
-        Abonne abonne3 = new Abonne(3, "bob", "2222");
 
-        abonnes.add(abonne1);
-        abonnes.add(abonne2);
-        abonnes.add(abonne3);
+        List<Artiste> artistes = GestionFichier.chargerArtistes("src/txt/artistes.txt");
+        List<Groupe>  groupes  = GestionFichier.chargerGroupes("src/txt/groupes.txt");
+        List<Morceau> morceauxInitiaux = GestionFichier.chargerMorceaux("src/txt/morceaux.txt", artistes, groupes);
+        List<Abonne>  abonnes  = GestionFichier.chargerAbonnes("src/txt/abonnes.txt");
+        List<Administrateur> administrateurs = GestionFichier.chargerAdministrateurs("src/txt/administrateurs.txt");
 
-        Administrateur admin1 = new Administrateur(99, "admin", "1234");
-        administrateurs.add(admin1);
-
-        Interprete artiste1 = new Artiste("Noichi");
-        Interprete groupe1 = new Groupe("La Mifa");
-
-        Morceau morceau1 = new Morceau(1, "Premier son", 180, "Rap", 0, artiste1);
-        Morceau morceau2 = new Morceau(2, "Deuxieme son", 210, "Rock", 0, groupe1);
-
-        Album album1 = new Album(1, "Album test", 2024, artiste1);
-        album1.ajouterMorceau(morceau1);
-        album1.ajouterMorceau(morceau2);
-
-        catalogue.ajouterArtiste((Artiste) artiste1);
-        catalogue.ajouterGroupe((Groupe) groupe1);
-        catalogue.ajouterMorceau(morceau1);
-        catalogue.ajouterMorceau(morceau2);
-        catalogue.ajouterAlbum(album1);
+        for (Artiste a : artistes)        catalogue.ajouterArtiste(a);
+        for (Groupe  g : groupes)         catalogue.ajouterGroupe(g);
+        for (Morceau m : morceauxInitiaux) catalogue.ajouterMorceau(m);
+        GestionFichier.chargerAlbums("src/txt/albums.txt", catalogue, artistes, groupes, morceauxInitiaux);
+        GestionFichier.chargerPlaylists("src/txt/playlists.txt", abonnes, morceauxInitiaux);
 
         AuthentificationService authService = new AuthentificationService();
 
@@ -73,9 +58,9 @@ public class Main {
                         System.out.println("Connexion reussie : " + utilisateurConnecte.getLogin());
 
                         if (utilisateurConnecte instanceof Abonne) {
-                            menuAbonne(clavier, catalogue, (Abonne) utilisateurConnecte);
+                            menuAbonne(clavier, catalogue, (Abonne) utilisateurConnecte, abonnes, "src/txt/playlists.txt");
                         } else if (utilisateurConnecte instanceof Administrateur) {
-                            menuAdministrateur(clavier, catalogue, abonnes, (Administrateur) utilisateurConnecte);
+                            menuAdministrateur(clavier, catalogue, abonnes, (Administrateur) utilisateurConnecte, artistes, groupes,"src/txt/abonnes.txt","src/txt/artistes.txt", "src/txt/groupes.txt", "src/txt/morceaux.txt", "src/txt/albums.txt");
                         }
                     }
                     break;
@@ -87,13 +72,15 @@ public class Main {
                     String nouveauPw = clavier.nextLine();
 
                     Abonne nouvelAbonne = authService.creerCompte(nouveauLogin, nouveauPw, abonnes);
+                    GestionFichier.sauvegarderAbonnes("src/txt/abonnes.txt", abonnes);
 
                     if (nouvelAbonne == null) {
                         System.out.println("Creation du compte impossible. Login deja utilise ou champs invalides.");
                     } else {
                         System.out.println("Compte cree avec succes.");
                         System.out.println("Bienvenue " + nouvelAbonne.getLogin());
-                        menuAbonne(clavier, catalogue, nouvelAbonne);
+                        menuAbonne(clavier, catalogue, nouvelAbonne, abonnes, "src/txt/playlists.txt");
+                        GestionFichier.sauvegarderAbonnes("src/txt/abonnes.txt", abonnes);
                     }
                     break;
 
@@ -283,7 +270,7 @@ public class Main {
         }
     }
 
-    public static void menuAbonne(Scanner clavier, Catalogue catalogue, Abonne abonne) {
+    public static void menuAbonne(Scanner clavier, Catalogue catalogue, Abonne abonne, List<Abonne> abonnes, String cheminPlaylists) {
         boolean continuer = true;
 
         while (continuer) {
@@ -437,6 +424,7 @@ public class Main {
 
                     Playlist nouvellePlaylist = new Playlist(nomPlaylist, abonne);
                     abonne.ajouterPlaylist(nouvellePlaylist);
+                    GestionFichier.sauvegarderPlaylists(cheminPlaylists, abonnes);
 
                     System.out.println("Playlist creee avec succes.");
                     break;
@@ -482,6 +470,7 @@ public class Main {
 
                     Morceau morceauChoisi = catalogue.getMorceaux().get(choixMorceau - 1);
                     playlistChoisie.ajouterMorceau(morceauChoisi);
+                    GestionFichier.sauvegarderPlaylists(cheminPlaylists, abonnes);
 
                     System.out.println("Morceau ajoute a la playlist.");
                     break;
@@ -569,6 +558,7 @@ public class Main {
 
                     Morceau morceauARetirer = playlistASupprimerMorceau.getMorceaux().get(indexMorceauSupp - 1);
                     playlistASupprimerMorceau.retirerMorceau(morceauARetirer);
+                    GestionFichier.sauvegarderPlaylists(cheminPlaylists, abonnes);
 
                     System.out.println("Morceau retire de la playlist.");
                     break;
@@ -603,6 +593,7 @@ public class Main {
                     }
 
                     playlistARenommer.renommer(nouveauNom);
+                    GestionFichier.sauvegarderPlaylists(cheminPlaylists, abonnes);
                     System.out.println("Playlist renommee avec succes.");
                     break;
 
@@ -627,6 +618,7 @@ public class Main {
 
                     Playlist playlistASupprimer = abonne.getPlaylists().get(indexPlaylistSupprimer - 1);
                     abonne.supprimerPlaylist(playlistASupprimer);
+                    GestionFichier.sauvegarderPlaylists(cheminPlaylists, abonnes);
 
                     System.out.println("Playlist supprimee avec succes.");
                     break;
@@ -679,7 +671,7 @@ public class Main {
         }
     }
 
-    public static void menuAdministrateur(Scanner clavier, Catalogue catalogue, List<Abonne> abonnes, Administrateur admin) {
+    public static void menuAdministrateur(Scanner clavier, Catalogue catalogue,List<Abonne> abonnes, Administrateur admin, List<Artiste> artistes, List<Groupe> groupes, String cheminAbonnes, String cheminArtistes, String cheminGroupes, String cheminMorceaux, String cheminAlbums) {
         boolean continuer = true;
 
         while (continuer) {
@@ -734,6 +726,9 @@ public class Main {
                     Morceau nouveauMorceau = new Morceau(nouvelIdMorceau, titreMorceau, dureeMorceau, styleMorceau, 0, interpreteMorceau);
 
                     admin.ajouterMorceauCatalogue(catalogue, nouveauMorceau);
+                    GestionFichier.sauvegarderArtistes(cheminArtistes, catalogue.getArtistes());
+                    GestionFichier.sauvegarderGroupes(cheminGroupes, catalogue.getGroupes());
+                    GestionFichier.sauvegarderMorceaux(cheminMorceaux, catalogue.getMorceaux());
                     System.out.println("Morceau ajoute au catalogue.");
                     break;
 
@@ -758,6 +753,7 @@ public class Main {
 
                     Morceau morceauASupprimer = catalogue.getMorceaux().get(indexSuppMorceau - 1);
                     admin.supprimerMorceauCatalogue(catalogue, morceauASupprimer);
+                    GestionFichier.sauvegarderMorceaux(cheminMorceaux, catalogue.getMorceaux());
 
                     System.out.println("Morceau supprime du catalogue.");
                     break;
@@ -790,6 +786,8 @@ public class Main {
                     Album nouvelAlbum = new Album(nouvelIdAlbum, titreAlbum, anneeAlbum, interpreteAlbum);
 
                     admin.ajouterAlbumCatalogue(catalogue, nouvelAlbum);
+                    GestionFichier.sauvegarderAlbums(cheminAlbums, catalogue.getAlbums());
+                    GestionFichier.sauvegarderArtistes(cheminArtistes, catalogue.getArtistes());
                     System.out.println("Album ajoute au catalogue.");
                     break;
 
@@ -814,6 +812,7 @@ public class Main {
 
                     Album albumASupprimer = catalogue.getAlbums().get(indexSuppAlbum - 1);
                     admin.supprimerAlbumCatalogue(catalogue, albumASupprimer);
+                    GestionFichier.sauvegarderAlbums(cheminAlbums, catalogue.getAlbums());
 
                     System.out.println("Album supprime du catalogue.");
                     break;
@@ -824,7 +823,7 @@ public class Main {
 
                     Artiste nouvelArtiste = new Artiste(nomNouvelArtiste);
                     admin.ajouterArtisteCatalogue(catalogue, nouvelArtiste);
-
+                    GestionFichier.sauvegarderArtistes(cheminArtistes, catalogue.getArtistes());
                     System.out.println("Artiste ajoute au catalogue.");
                     break;
 
@@ -849,6 +848,7 @@ public class Main {
 
                     Artiste artisteASupprimer = catalogue.getArtistes().get(indexArtiste - 1);
                     admin.supprimerArtisteCatalogue(catalogue, artisteASupprimer);
+                    GestionFichier.sauvegarderArtistes(cheminArtistes, catalogue.getArtistes());
 
                     System.out.println("Artiste supprime du catalogue.");
                     break;
@@ -859,6 +859,7 @@ public class Main {
 
                     Groupe nouveauGroupe = new Groupe(nomNouveauGroupe);
                     admin.ajouterGroupeCatalogue(catalogue, nouveauGroupe);
+                    GestionFichier.sauvegarderGroupes(cheminGroupes, catalogue.getGroupes());
 
                     System.out.println("Groupe ajoute au catalogue.");
                     break;
@@ -884,6 +885,7 @@ public class Main {
 
                     Groupe groupeASupprimer = catalogue.getGroupes().get(indexGroupe - 1);
                     admin.supprimerGroupeCatalogue(catalogue, groupeASupprimer);
+                    GestionFichier.sauvegarderGroupes(cheminGroupes, catalogue.getGroupes());
 
                     System.out.println("Groupe supprime du catalogue.");
                     break;
@@ -920,6 +922,7 @@ public class Main {
 
                     Abonne abonneASuspendre = abonnes.get(indexAbonneSuspendre - 1);
                     admin.suspendreAbonne(abonneASuspendre);
+                    GestionFichier.sauvegarderAbonnes("src/txt/abonnes.txt", abonnes);
 
                     System.out.println("Abonne suspendu avec succes.");
                     break;
@@ -945,6 +948,7 @@ public class Main {
 
                     Abonne abonneAReactiver = abonnes.get(indexAbonneReactiver - 1);
                     admin.reactiverAbonne(abonneAReactiver);
+                    GestionFichier.sauvegarderAbonnes("src/txt/abonnes.txt", abonnes);
 
                     System.out.println("Abonne reactive avec succes.");
                     break;
@@ -970,6 +974,7 @@ public class Main {
 
                     Abonne abonneASupprimer = abonnes.get(indexSuppAbonne - 1);
                     admin.supprimerAbonne(abonnes, abonneASupprimer);
+                    GestionFichier.sauvegarderAbonnes("src/txt/abonnes.txt", abonnes);
 
                     System.out.println("Abonne supprime avec succes.");
                     break;
