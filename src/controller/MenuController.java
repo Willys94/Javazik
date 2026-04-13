@@ -191,7 +191,7 @@ public class MenuController {
      * @param catalogue catalogue musical
      * @param abonne abonne connecte
      */
-    public static void menuAbonne(Scanner clavier, Catalogue catalogue, Abonne abonne) {
+    public static void menuAbonne(Scanner clavier, Catalogue catalogue, Abonne abonne, List<Abonne> abonnes, String cheminPlaylists) {
         boolean continuer = true;
         while (continuer) {
             try {
@@ -340,6 +340,7 @@ public class MenuController {
                     String nomPlaylist = clavier.nextLine();
                     Playlist nouvellePlaylist = new Playlist(nomPlaylist, abonne);
                     abonne.ajouterPlaylist(nouvellePlaylist);
+                    GestionFichier.sauvegarderPlaylists(cheminPlaylists, abonnes);
                     System.out.println("Playlist creee avec succes.");
                     break;
                 case 9:
@@ -374,6 +375,7 @@ public class MenuController {
                     }
                     Morceau morceauChoisi = catalogue.getMorceaux().get(choixMorceau - 1);
                     playlistChoisie.ajouterMorceau(morceauChoisi);
+                    GestionFichier.sauvegarderPlaylists(cheminPlaylists, abonnes);
                     System.out.println("Morceau ajoute a la playlist.");
                     break;
                 case 10:
@@ -427,6 +429,7 @@ public class MenuController {
                         break;
                     }
                     Playlist playlistASupprimerMorceau = abonne.getPlaylists().get(indexPlaylistSupp - 1);
+                    GestionFichier.sauvegarderPlaylists(cheminPlaylists, abonnes);
                     if (playlistASupprimerMorceau.getMorceaux().isEmpty()) {
                         System.out.println("Cette playlist est vide.");
                         break;
@@ -468,6 +471,7 @@ public class MenuController {
                         break;
                     }
                     playlistARenommer.renommer(nouveauNom);
+                    GestionFichier.sauvegarderPlaylists(cheminPlaylists, abonnes);
                     System.out.println("Playlist renommee avec succes.");
                     break;
                 case 14:
@@ -487,6 +491,7 @@ public class MenuController {
                     }
                     Playlist playlistASupprimer = abonne.getPlaylists().get(indexPlaylistSupprimer - 1);
                     abonne.supprimerPlaylist(playlistASupprimer);
+                    GestionFichier.sauvegarderPlaylists(cheminPlaylists, abonnes);
                     System.out.println("Playlist supprimee avec succes.");
                     break;
                 case 15:
@@ -648,7 +653,7 @@ public class MenuController {
      * @param abonnes liste des abonnes
      * @param admin administrateur connecte
      */
-    public static void menuAdministrateur(Scanner clavier, Catalogue catalogue, List<Abonne> abonnes, Administrateur admin) {
+    public static void menuAdministrateur(Scanner clavier, Catalogue catalogue, List<Abonne> abonnes, Administrateur admin, String cheminAbonnes, String cheminArtistes, String cheminGroupes, String cheminMorceaux, String cheminAlbums) {
         boolean continuer = true;
         while (continuer) {
             try {
@@ -697,6 +702,9 @@ public class MenuController {
                     int nouvelIdMorceau = catalogue.getMorceaux().size() + 1;
                     Morceau nouveauMorceau = new Morceau(nouvelIdMorceau, titreMorceau, dureeMorceau, styleMorceau, 0, interpreteMorceau);
                     admin.ajouterMorceauCatalogue(catalogue, nouveauMorceau);
+                    GestionFichier.sauvegarderArtistes(cheminArtistes, catalogue.getArtistes());
+                    GestionFichier.sauvegarderGroupes(cheminGroupes, catalogue.getGroupes());
+                    GestionFichier.sauvegarderMorceaux(cheminMorceaux, catalogue.getMorceaux());
                     System.out.println("Morceau ajoute au catalogue.");
                     break;
                 case 2:
@@ -716,6 +724,7 @@ public class MenuController {
                     }
                     Morceau morceauASupprimer = catalogue.getMorceaux().get(indexSuppMorceau - 1);
                     admin.supprimerMorceauCatalogue(catalogue, morceauASupprimer);
+                    GestionFichier.sauvegarderMorceaux(cheminMorceaux, catalogue.getMorceaux());
                     System.out.println("Morceau supprime du catalogue.");
                     break;
                 case 3:
@@ -740,6 +749,9 @@ public class MenuController {
                     int nouvelIdAlbum = catalogue.getAlbums().size() + 1;
                     Album nouvelAlbum = new Album(nouvelIdAlbum, titreAlbum, anneeAlbum, interpreteAlbum);
                     admin.ajouterAlbumCatalogue(catalogue, nouvelAlbum);
+                    GestionFichier.sauvegarderArtistes(cheminArtistes, catalogue.getArtistes());
+                    GestionFichier.sauvegarderGroupes(cheminGroupes, catalogue.getGroupes());
+                    GestionFichier.sauvegarderAlbums(cheminAlbums, catalogue.getAlbums());
                     System.out.println("Album ajoute au catalogue.");
                     break;
                 case 4:
@@ -759,6 +771,7 @@ public class MenuController {
                     }
                     Album albumASupprimer = catalogue.getAlbums().get(indexSuppAlbum - 1);
                     admin.supprimerAlbumCatalogue(catalogue, albumASupprimer);
+                    GestionFichier.sauvegarderAlbums(cheminAlbums, catalogue.getAlbums());
                     System.out.println("Album supprime du catalogue.");
                     break;
                 case 5:
@@ -766,6 +779,7 @@ public class MenuController {
                     String nomNouvelArtiste = clavier.nextLine();
                     Artiste nouvelArtiste = new Artiste(nomNouvelArtiste);
                     admin.ajouterArtisteCatalogue(catalogue, nouvelArtiste);
+                    GestionFichier.sauvegarderArtistes(cheminArtistes, catalogue.getArtistes());
                     System.out.println("Artiste ajoute au catalogue.");
                     break;
                 case 6:
@@ -785,6 +799,7 @@ public class MenuController {
                     }
                     Artiste artisteASupprimer = catalogue.getArtistes().get(indexArtiste - 1);
                     admin.supprimerArtisteCatalogue(catalogue, artisteASupprimer);
+                    GestionFichier.sauvegarderArtistes(cheminArtistes, catalogue.getArtistes());
                     System.out.println("Artiste supprime du catalogue.");
                     break;
                 case 7:
@@ -792,6 +807,7 @@ public class MenuController {
                     String nomNouveauGroupe = clavier.nextLine();
                     Groupe nouveauGroupe = new Groupe(nomNouveauGroupe);
                     admin.ajouterGroupeCatalogue(catalogue, nouveauGroupe);
+                    GestionFichier.sauvegarderGroupes(cheminGroupes, catalogue.getGroupes());
                     System.out.println("Groupe ajoute au catalogue.");
                     break;
                 case 8:
@@ -811,6 +827,7 @@ public class MenuController {
                     }
                     Groupe groupeASupprimer = catalogue.getGroupes().get(indexGroupe - 1);
                     admin.supprimerGroupeCatalogue(catalogue, groupeASupprimer);
+                    GestionFichier.sauvegarderGroupes(cheminGroupes, catalogue.getGroupes());
                     System.out.println("Groupe supprime du catalogue.");
                     break;
                 case 9:
@@ -840,6 +857,7 @@ public class MenuController {
                     }
                     Abonne abonneASuspendre = abonnes.get(indexAbonneSuspendre - 1);
                     admin.suspendreAbonne(abonneASuspendre);
+                    GestionFichier.sauvegarderAbonnes(cheminAbonnes, abonnes);
                     System.out.println("Abonne suspendu avec succes.");
                     break;
                 case 11:
@@ -859,6 +877,7 @@ public class MenuController {
                     }
                     Abonne abonneAReactiver = abonnes.get(indexAbonneReactiver - 1);
                     admin.reactiverAbonne(abonneAReactiver);
+                    GestionFichier.sauvegarderAbonnes(cheminAbonnes, abonnes);
                     System.out.println("Abonne reactive avec succes.");
                     break;
                 case 12:
@@ -878,6 +897,7 @@ public class MenuController {
                     }
                     Abonne abonneASupprimer = abonnes.get(indexSuppAbonne - 1);
                     admin.supprimerAbonne(abonnes, abonneASupprimer);
+                    GestionFichier.sauvegarderAbonnes(cheminAbonnes, abonnes);
                     System.out.println("Abonne supprime avec succes.");
                     break;
                 case 13:
