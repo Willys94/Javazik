@@ -1,0 +1,3 @@
+1;willys;0000;false
+2;alice;1111;false
+3;bob;2222;false

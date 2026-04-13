@@ -6,9 +6,9 @@ import view.ConsoleView;
 import view.SwingMainFrame;
 
 import javax.swing.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+
 
 public class Main {
 
@@ -21,32 +21,24 @@ public class Main {
      */
     public static void main(String[] args) {
         Catalogue catalogue = new Catalogue();
-        List<Abonne> abonnes = new ArrayList<>();
-        List<Administrateur> administrateurs = new ArrayList<>();
 
-        Abonne abonne1 = new Abonne(1, "willys", "0000");
-        Abonne abonne2 = new Abonne(2, "alice", "1111");
-        Abonne abonne3 = new Abonne(3, "bob", "2222");
-        abonnes.add(abonne1);
-        abonnes.add(abonne2);
-        abonnes.add(abonne3);
+        List<Artiste> artistes = GestionFichier.chargerArtistes("src/txt/artistes.txt");
+        List<Groupe> groupes = GestionFichier.chargerGroupes("src/txt/groupes.txt");
+        List<Morceau> morceaux = GestionFichier.chargerMorceaux("src/txt/morceaux.txt", artistes, groupes);
+        List<Abonne> abonnes = GestionFichier.chargerAbonnes("src/txt/abonnes.txt");
+        List<Administrateur> administrateurs = GestionFichier.chargerAdministrateurs("src/txt/administrateurs.txt");
 
-        Administrateur admin1 = new Administrateur(99, "admin", "1234");
-        administrateurs.add(admin1);
-
-        Interprete artiste1 = new Artiste("Noichi");
-        Interprete groupe1 = new Groupe("La Mifa");
-        Morceau morceau1 = new Morceau(1, "Premier son", 180, "Rap", 0, artiste1);
-        Morceau morceau2 = new Morceau(2, "Deuxieme son", 210, "Rock", 0, groupe1);
-        Album album1 = new Album(1, "Album test", 2024, artiste1);
-        album1.ajouterMorceau(morceau1);
-        album1.ajouterMorceau(morceau2);
-
-        catalogue.ajouterArtiste((Artiste) artiste1);
-        catalogue.ajouterGroupe((Groupe) groupe1);
-        catalogue.ajouterMorceau(morceau1);
-        catalogue.ajouterMorceau(morceau2);
-        catalogue.ajouterAlbum(album1);
+        for (Artiste artiste : artistes) {
+            catalogue.ajouterArtiste(artiste);
+        }
+        for (Groupe groupe : groupes) {
+            catalogue.ajouterGroupe(groupe);
+        }
+        for (Morceau morceau : morceaux) {
+            catalogue.ajouterMorceau(morceau);
+        }
+        GestionFichier.chargerAlbums("src/txt/albums.txt", catalogue, artistes, groupes, morceaux);
+        GestionFichier.chargerPlaylists("src/txt/playlists.txt", abonnes, morceaux);
 
         AuthentificationService authService = new AuthentificationService();
 
