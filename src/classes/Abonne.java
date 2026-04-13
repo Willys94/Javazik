@@ -5,12 +5,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Represente un utilisateur abonne.
+ * Un abonne dispose de playlists, d'un historique et d'un statut de suspension.
+ */
 public class Abonne extends Utilisateurs {
     private List<Playlist> playlists;
     private List<Morceau> historique;
     private Map<Morceau, Integer> nbEcoutesParMorceau;
     private boolean suspendu;
 
+    /**
+     * Cree un nouvel abonne actif.
+     *
+     * @param id identifiant unique
+     * @param login login de connexion
+     * @param pw mot de passe
+     */
     public Abonne(int id, String login, String pw) {
         super(id, login, pw);
         this.playlists = new ArrayList<>();
@@ -33,6 +44,11 @@ public class Abonne extends Utilisateurs {
         return playlists;
     }
 
+    /**
+     * Enregistre l'ecoute d'un morceau dans l'historique et met a jour les compteurs.
+     *
+     * @param morceau morceau ecoute
+     */
     public void ecouterMorceau(Morceau morceau) {
         if (morceau != null) {
             historique.add(morceau);

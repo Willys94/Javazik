@@ -58,12 +58,8 @@ public class Album {
 
     @Override
     public String toString() {
-        return "Album{" +
-                "id=" + id +
-                ", titre='" + titre + '\'' +
-                ", annee=" + annee +
-                ", interprete=" + interprete.getNom() +
-                ", nbMorceaux=" + morceaux.size() +
-                '}';
+        int n = morceaux.size();
+        String mot = n <= 1 ? "morceau" : "morceaux";
+        return String.format("\"%s\" (%d) · %s · %d %s", titre, annee, interprete.getNom(), n, mot);
     }
 }
