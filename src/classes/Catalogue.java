@@ -1,8 +1,14 @@
 package classes;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Represente le catalogue musical central de l'application.
+ * Il stocke morceaux, albums, artistes et groupes, et expose des
+ * operations de recherche, tri et statistiques.
+ */
 public class Catalogue {
     private List<Morceau> morceaux;
     private List<Album> albums;
@@ -72,6 +78,12 @@ public class Catalogue {
         return groupes;
     }
 
+    /**
+     * Recherche des morceaux par correspondance partielle sur le titre.
+     *
+     * @param titre texte recherche
+     * @return liste des morceaux correspondants
+     */
     public List<Morceau> rechercherMorceauxParTitre(String titre) {
         List<Morceau> resultats = new ArrayList<>();
 
@@ -190,5 +202,133 @@ public class Catalogue {
         }
 
         return resultats;
+    }
+
+    /**
+     * Recherche des morceaux par style musical.
+     *
+     * @param style style recherche
+     * @return liste des morceaux correspondants
+     */
+    public List<Morceau> rechercherMorceauxParStyle(String style) {
+        List<Morceau> resultats = new ArrayList<>();
+
+        if (style == null || style.trim().isEmpty()) {
+            return resultats;
+        }
+
+        for (Morceau morceau : morceaux) {
+            if (morceau.getStyle() != null &&
+                    morceau.getStyle().toLowerCase().contains(style.toLowerCase())) {
+                resultats.add(morceau);
+            }
+        }
+
+        return resultats;
+    }
+
+    /**
+     * Calcule le total des ecoutes de tous les morceaux du catalogue.
+     *
+     * @return nombre total d'ecoutes
+     */
+    public int getTotalEcoutesCatalogue() {
+        int total = 0;
+        for (Morceau morceau : morceaux) {
+            total += morceau.getNbEcoutes();
+        }
+        return total;
+    }
+
+    /**
+     * Retourne le morceau le plus ecoute.
+     *
+     * @return morceau le plus ecoute, ou {@code null} si vide
+     */
+    public Morceau getMorceauLePlusEcoute() {
+        Morceau meilleur = null;
+        for (Morceau morceau : morceaux) {
+            if (meilleur == null || morceau.getNbEcoutes() > meilleur.getNbEcoutes()) {
+                meilleur = morceau;
+            }
+        }
+        return meilleur;
+    }
+
+    public Album getAlbumLePlusEcoute() {
+        Album meilleurAlbum = null;
+        int maxEcoutesAlbum = -1;
+
+        for (Album album : albums) {
+            int ecoutesAlbum = 0;
+            for (Morceau morceau : album.getMorceaux()) {
+                ecoutesAlbum += morceau.getNbEcoutes();
+            }
+
+            if (ecoutesAlbum > maxEcoutesAlbum) {
+                maxEcoutesAlbum = ecoutesAlbum;
+                meilleurAlbum = album;
+            }
+        }
+
+        return meilleurAlbum;
+    }
+
+    public Interprete getInterpreteLePlusEcoute() {
+        Interprete meilleur = null;
+        int maxEcoutes = -1;
+
+        for (Artiste artiste : artistes) {
+            int ecoutesArtiste = 0;
+            for (Morceau morceau : morceaux) {
+                if (morceau.getInterprete() instanceof Artiste &&
+                        morceau.getInterprete().getNom().equalsIgnoreCase(artiste.getNom())) {
+                    ecoutesArtiste += morceau.getNbEcoutes();
+                }
+            }
+            if (ecoutesArtiste > maxEcoutes) {
+                maxEcoutes = ecoutesArtiste;
+                meilleur = artiste;
+            }
+        }
+
+        for (Groupe groupe : groupes) {
+            int ecoutesGroupe = 0;
+            for (Morceau morceau : morceaux) {
+                if (morceau.getInterprete() instanceof Groupe &&
+                        morceau.getInterprete().getNom().equalsIgnoreCase(groupe.getNom())) {
+                    ecoutesGroupe += morceau.getNbEcoutes();
+                }
+            }
+            if (ecoutesGroupe > maxEcoutes) {
+                maxEcoutes = ecoutesGroupe;
+                meilleur = groupe;
+            }
+        }
+
+        return meilleur;
+    }
+
+    /**
+     * Retourne la liste des morceaux tries par titre.
+     *
+     * @return copie triee par ordre alphabetique de titre
+     */
+    public List<Morceau> getMorceauxTriesParTitre() {
+        List<Morceau> tries = new ArrayList<>(morceaux);
+        tries.sort(Comparator.comparing(Morceau::getTitre, String.CASE_INSENSITIVE_ORDER));
+        return tries;
+    }
+
+    public List<Morceau> getMorceauxTriesParDuree() {
+        List<Morceau> tries = new ArrayList<>(morceaux);
+        tries.sort(Comparator.comparingInt(Morceau::getDuree));
+        return tries;
+    }
+
+    public List<Morceau> getMorceauxTriesParEcoutes() {
+        List<Morceau> tries = new ArrayList<>(morceaux);
+        tries.sort(Comparator.comparingInt(Morceau::getNbEcoutes).reversed());
+        return tries;
     }
 }
