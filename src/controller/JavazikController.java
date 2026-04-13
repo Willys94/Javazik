@@ -21,6 +21,7 @@ public class JavazikController {
     private final List<Abonne> abonnes;
     private final List<Administrateur> administrateurs;
     private final AuthentificationService authService;
+    private final PersistenceService persistenceService;
 
     /**
      * Construit le controleur console.
@@ -38,7 +39,8 @@ public class JavazikController {
             Catalogue catalogue,
             List<Abonne> abonnes,
             List<Administrateur> administrateurs,
-            AuthentificationService authService
+            AuthentificationService authService,
+            PersistenceService persistenceService
     ) {
         this.vue = vue;
         this.clavier = clavier;
@@ -46,6 +48,7 @@ public class JavazikController {
         this.abonnes = abonnes;
         this.administrateurs = administrateurs;
         this.authService = authService;
+        this.persistenceService = persistenceService;
     }
 
     /**
@@ -73,9 +76,9 @@ public class JavazikController {
                         vue.afficherMessage("Connexion reussie : " + utilisateurConnecte.getLogin());
 
                         if (utilisateurConnecte instanceof Abonne) {
-                            MenuController.menuAbonne(clavier, catalogue, (Abonne) utilisateurConnecte, abonnes, "src/txt/playlists.txt");
+                            MenuController.menuAbonne(clavier, catalogue, (Abonne) utilisateurConnecte, abonnes, persistenceService);
                         } else if (utilisateurConnecte instanceof Administrateur) {
-                            MenuController.menuAdministrateur(clavier, catalogue, abonnes, (Administrateur) utilisateurConnecte,"src/txt/abonnes.txt","src/txt/artistes.txt","src/txt/groupes.txt","src/txt/morceaux.txt","src/txt/albums.txt");
+                            MenuController.menuAdministrateur(clavier, catalogue, abonnes, (Administrateur) utilisateurConnecte, persistenceService);
                         }
                     }
                     break;
@@ -91,9 +94,10 @@ public class JavazikController {
                     if (nouvelAbonne == null) {
                         vue.afficherMessage("Creation du compte impossible. Login deja utilise ou champs invalides.");
                     } else {
+                        persistenceService.saveAccounts(abonnes);
                         vue.afficherMessage("Compte cree avec succes.");
                         vue.afficherMessage("Bienvenue " + nouvelAbonne.getLogin());
-                        MenuController.menuAbonne(clavier, catalogue, nouvelAbonne, abonnes, "src/txt/playlists.txt");
+                        MenuController.menuAbonne(clavier, catalogue, nouvelAbonne, abonnes, persistenceService);
                     }
                     break;
 

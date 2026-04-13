@@ -15,6 +15,7 @@ public class GuiController {
     private final List<Abonne> abonnes;
     private final List<Administrateur> administrateurs;
     private final AuthentificationService authService;
+    private final PersistenceService persistenceService;
 
     /**
      * Cree un controleur graphique.
@@ -24,11 +25,13 @@ public class GuiController {
      * @param administrateurs liste des administrateurs
      * @param authService service d'authentification
      */
-    public GuiController(Catalogue catalogue, List<Abonne> abonnes, List<Administrateur> administrateurs, AuthentificationService authService) {
+    public GuiController(Catalogue catalogue, List<Abonne> abonnes, List<Administrateur> administrateurs,
+                         AuthentificationService authService, PersistenceService persistenceService) {
         this.catalogue = catalogue;
         this.abonnes = abonnes;
         this.administrateurs = administrateurs;
         this.authService = authService;
+        this.persistenceService = persistenceService;
     }
 
     /**
@@ -43,7 +46,11 @@ public class GuiController {
     }
 
     public Abonne creerCompte(String login, String motDePasse) {
-        return authService.creerCompte(login, motDePasse, abonnes);
+        Abonne abonne = authService.creerCompte(login, motDePasse, abonnes);
+        if (abonne != null) {
+            persistenceService.saveAccounts(abonnes);
+        }
+        return abonne;
     }
 
     public List<Morceau> rechercherMorceauxParTitre(String titre) {
@@ -115,93 +122,72 @@ public class GuiController {
     }
 
     public boolean adminAjouterMorceau(String titre, int duree, String style, String typeInterprete, String nomInterprete) {
-        if (titre == null || titre.trim().isEmpty() || style == null || style.trim().isEmpty()
-                || nomInterprete == null || nomInterprete.trim().isEmpty() || duree <= 0) {
-            return false;
-        }
-        Interprete interprete;
-        if ("Artiste".equalsIgnoreCase(typeInterprete)) {
-            Artiste a = new Artiste(nomInterprete.trim());
-            catalogue.ajouterArtiste(a);
-            interprete = a;
-        } else {
-            Groupe g = new Groupe(nomInterprete.trim());
-            catalogue.ajouterGroupe(g);
-            interprete = g;
-        }
-        Morceau m = new Morceau(catalogue.getMorceaux().size() + 1, titre.trim(), duree, style.trim(), 0, interprete);
-        catalogue.ajouterMorceau(m);
-        return true;
+        boolean ok = SharedService.adminAjouterMorceau(catalogue, titre, duree, style, typeInterprete, nomInterprete);
+        if (ok) persistenceService.saveCatalogue(catalogue);
+        return ok;
     }
 
     public boolean adminSupprimerMorceau(Morceau morceau) {
-        if (morceau == null) return false;
-        catalogue.supprimerMorceau(morceau);
-        return true;
+        boolean ok = SharedService.adminSupprimerMorceau(catalogue, morceau);
+        if (ok) persistenceService.saveCatalogue(catalogue);
+        return ok;
     }
 
     public boolean adminAjouterAlbum(String titre, int annee, String typeInterprete, String nomInterprete) {
-        if (titre == null || titre.trim().isEmpty() || nomInterprete == null || nomInterprete.trim().isEmpty()) return false;
-        Interprete interprete;
-        if ("Artiste".equalsIgnoreCase(typeInterprete)) {
-            Artiste a = new Artiste(nomInterprete.trim());
-            catalogue.ajouterArtiste(a);
-            interprete = a;
-        } else {
-            Groupe g = new Groupe(nomInterprete.trim());
-            catalogue.ajouterGroupe(g);
-            interprete = g;
-        }
-        catalogue.ajouterAlbum(new Album(catalogue.getAlbums().size() + 1, titre.trim(), annee, interprete));
-        return true;
+        boolean ok = SharedService.adminAjouterAlbum(catalogue, titre, annee, typeInterprete, nomInterprete);
+        if (ok) persistenceService.saveCatalogue(catalogue);
+        return ok;
     }
 
     public boolean adminSupprimerAlbum(Album album) {
-        if (album == null) return false;
-        catalogue.supprimerAlbum(album);
-        return true;
+        boolean ok = SharedService.adminSupprimerAlbum(catalogue, album);
+        if (ok) persistenceService.saveCatalogue(catalogue);
+        return ok;
     }
 
     public boolean adminAjouterArtiste(String nom) {
-        if (nom == null || nom.trim().isEmpty()) return false;
-        catalogue.ajouterArtiste(new Artiste(nom.trim()));
-        return true;
+        boolean ok = SharedService.adminAjouterArtiste(catalogue, nom);
+        if (ok) persistenceService.saveCatalogue(catalogue);
+        return ok;
     }
 
     public boolean adminSupprimerArtiste(Artiste artiste) {
-        if (artiste == null) return false;
-        catalogue.supprimerArtiste(artiste);
-        return true;
+        boolean ok = SharedService.adminSupprimerArtiste(catalogue, artiste);
+        if (ok) persistenceService.saveCatalogue(catalogue);
+        return ok;
     }
 
     public boolean adminAjouterGroupe(String nom) {
-        if (nom == null || nom.trim().isEmpty()) return false;
-        catalogue.ajouterGroupe(new Groupe(nom.trim()));
-        return true;
+        boolean ok = SharedService.adminAjouterGroupe(catalogue, nom);
+        if (ok) persistenceService.saveCatalogue(catalogue);
+        return ok;
     }
 
     public boolean adminSupprimerGroupe(Groupe groupe) {
-        if (groupe == null) return false;
-        catalogue.supprimerGroupe(groupe);
-        return true;
+        boolean ok = SharedService.adminSupprimerGroupe(catalogue, groupe);
+        if (ok) persistenceService.saveCatalogue(catalogue);
+        return ok;
     }
 
     public boolean adminSuspendreAbonne(Abonne abonne) {
-        if (abonne == null) return false;
-        abonne.suspendre();
-        return true;
+        boolean ok = SharedService.adminSuspendreAbonne(abonne);
+        if (ok) persistenceService.saveAccounts(abonnes);
+        return ok;
     }
 
     public boolean adminReactiverAbonne(Abonne abonne) {
-        if (abonne == null) return false;
-        abonne.reactiver();
-        return true;
+        boolean ok = SharedService.adminReactiverAbonne(abonne);
+        if (ok) persistenceService.saveAccounts(abonnes);
+        return ok;
     }
 
     public boolean adminSupprimerAbonne(Abonne abonne) {
-        if (abonne == null) return false;
-        abonnes.remove(abonne);
-        return true;
+        boolean ok = SharedService.adminSupprimerAbonne(abonnes, abonne);
+        if (ok) {
+            persistenceService.saveAccounts(abonnes);
+            persistenceService.savePlaylists(abonnes);
+        }
+        return ok;
     }
 
     public String getResumeStatsAdmin() {
@@ -232,17 +218,11 @@ public class GuiController {
      * @return {@code true} si l'operation est valide
      */
     public boolean noterMorceau(Abonne abonne, Morceau morceau, int note, String commentaire) {
-        if (abonne == null || morceau == null) {
-            return false;
-        }
-        return morceau.ajouterOuModifierAvis(abonne.getLogin(), note, commentaire);
+        return SharedService.noterMorceau(abonne, morceau, note, commentaire);
     }
 
     public boolean supprimerMaNote(Abonne abonne, Morceau morceau) {
-        if (abonne == null || morceau == null) {
-            return false;
-        }
-        return morceau.supprimerAvis(abonne.getLogin());
+        return SharedService.supprimerNote(abonne, morceau);
     }
 
     /**
@@ -268,11 +248,9 @@ public class GuiController {
     }
 
     public boolean creerPlaylist(Abonne abonne, String nom) {
-        if (abonne == null || nom == null || nom.trim().isEmpty()) {
-            return false;
-        }
-        abonne.ajouterPlaylist(new Playlist(nom.trim(), abonne));
-        return true;
+        boolean ok = SharedService.creerPlaylist(abonne, nom);
+        if (ok) persistenceService.savePlaylists(abonnes);
+        return ok;
     }
 
     public List<Playlist> getPlaylists(Abonne abonne) {
@@ -283,11 +261,9 @@ public class GuiController {
     }
 
     public boolean ajouterMorceauAPlaylist(Playlist playlist, Morceau morceau) {
-        if (playlist == null || morceau == null) {
-            return false;
-        }
-        playlist.ajouterMorceau(morceau);
-        return true;
+        boolean ok = SharedService.ajouterMorceauAPlaylist(playlist, morceau);
+        if (ok) persistenceService.savePlaylists(abonnes);
+        return ok;
     }
 
     public List<Morceau> getMorceauxPlaylist(Playlist playlist) {
@@ -298,26 +274,34 @@ public class GuiController {
     }
 
     public boolean retirerMorceauDePlaylist(Playlist playlist, Morceau morceau) {
-        if (playlist == null || morceau == null) {
-            return false;
-        }
-        playlist.retirerMorceau(morceau);
-        return true;
+        boolean ok = SharedService.retirerMorceauDePlaylist(playlist, morceau);
+        if (ok) persistenceService.savePlaylists(abonnes);
+        return ok;
     }
 
     public boolean renommerPlaylist(Playlist playlist, String nouveauNom) {
-        if (playlist == null || nouveauNom == null || nouveauNom.trim().isEmpty()) {
-            return false;
-        }
-        playlist.renommer(nouveauNom.trim());
-        return true;
+        boolean ok = SharedService.renommerPlaylist(playlist, nouveauNom);
+        if (ok) persistenceService.savePlaylists(abonnes);
+        return ok;
     }
 
     public boolean supprimerPlaylist(Abonne abonne, Playlist playlist) {
-        if (abonne == null || playlist == null) {
-            return false;
+        boolean ok = SharedService.supprimerPlaylist(abonne, playlist);
+        if (ok) persistenceService.savePlaylists(abonnes);
+        return ok;
+    }
+
+    public boolean ecouterMorceau(Abonne abonne, Morceau morceau) {
+        boolean ok = (abonne == null)
+                ? SharedService.ecouterMorceauInvite(morceau)
+                : SharedService.ecouterMorceauAbonne(abonne, morceau);
+        if (ok) {
+            persistenceService.saveCatalogue(catalogue);
         }
-        abonne.supprimerPlaylist(playlist);
-        return true;
+        return ok;
+    }
+
+    public void saveAll() {
+        persistenceService.saveAll(catalogue, abonnes);
     }
 }

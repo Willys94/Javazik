@@ -1,3 +1,4 @@
 1;willys;0000;false
 2;alice;1111;false
 3;bob;2222;false
+4;testpersist76519;pass123;false
