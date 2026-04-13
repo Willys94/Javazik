@@ -98,6 +98,130 @@ public class GuiController {
         return catalogue.getMorceaux();
     }
 
+    public List<Album> getAlbums() {
+        return catalogue.getAlbums();
+    }
+
+    public List<Artiste> getArtistes() {
+        return catalogue.getArtistes();
+    }
+
+    public List<Groupe> getGroupes() {
+        return catalogue.getGroupes();
+    }
+
+    public List<Abonne> getAbonnes() {
+        return abonnes;
+    }
+
+    public boolean adminAjouterMorceau(String titre, int duree, String style, String typeInterprete, String nomInterprete) {
+        if (titre == null || titre.trim().isEmpty() || style == null || style.trim().isEmpty()
+                || nomInterprete == null || nomInterprete.trim().isEmpty() || duree <= 0) {
+            return false;
+        }
+        Interprete interprete;
+        if ("Artiste".equalsIgnoreCase(typeInterprete)) {
+            Artiste a = new Artiste(nomInterprete.trim());
+            catalogue.ajouterArtiste(a);
+            interprete = a;
+        } else {
+            Groupe g = new Groupe(nomInterprete.trim());
+            catalogue.ajouterGroupe(g);
+            interprete = g;
+        }
+        Morceau m = new Morceau(catalogue.getMorceaux().size() + 1, titre.trim(), duree, style.trim(), 0, interprete);
+        catalogue.ajouterMorceau(m);
+        return true;
+    }
+
+    public boolean adminSupprimerMorceau(Morceau morceau) {
+        if (morceau == null) return false;
+        catalogue.supprimerMorceau(morceau);
+        return true;
+    }
+
+    public boolean adminAjouterAlbum(String titre, int annee, String typeInterprete, String nomInterprete) {
+        if (titre == null || titre.trim().isEmpty() || nomInterprete == null || nomInterprete.trim().isEmpty()) return false;
+        Interprete interprete;
+        if ("Artiste".equalsIgnoreCase(typeInterprete)) {
+            Artiste a = new Artiste(nomInterprete.trim());
+            catalogue.ajouterArtiste(a);
+            interprete = a;
+        } else {
+            Groupe g = new Groupe(nomInterprete.trim());
+            catalogue.ajouterGroupe(g);
+            interprete = g;
+        }
+        catalogue.ajouterAlbum(new Album(catalogue.getAlbums().size() + 1, titre.trim(), annee, interprete));
+        return true;
+    }
+
+    public boolean adminSupprimerAlbum(Album album) {
+        if (album == null) return false;
+        catalogue.supprimerAlbum(album);
+        return true;
+    }
+
+    public boolean adminAjouterArtiste(String nom) {
+        if (nom == null || nom.trim().isEmpty()) return false;
+        catalogue.ajouterArtiste(new Artiste(nom.trim()));
+        return true;
+    }
+
+    public boolean adminSupprimerArtiste(Artiste artiste) {
+        if (artiste == null) return false;
+        catalogue.supprimerArtiste(artiste);
+        return true;
+    }
+
+    public boolean adminAjouterGroupe(String nom) {
+        if (nom == null || nom.trim().isEmpty()) return false;
+        catalogue.ajouterGroupe(new Groupe(nom.trim()));
+        return true;
+    }
+
+    public boolean adminSupprimerGroupe(Groupe groupe) {
+        if (groupe == null) return false;
+        catalogue.supprimerGroupe(groupe);
+        return true;
+    }
+
+    public boolean adminSuspendreAbonne(Abonne abonne) {
+        if (abonne == null) return false;
+        abonne.suspendre();
+        return true;
+    }
+
+    public boolean adminReactiverAbonne(Abonne abonne) {
+        if (abonne == null) return false;
+        abonne.reactiver();
+        return true;
+    }
+
+    public boolean adminSupprimerAbonne(Abonne abonne) {
+        if (abonne == null) return false;
+        abonnes.remove(abonne);
+        return true;
+    }
+
+    public String getResumeStatsAdmin() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Utilisateurs: ").append(abonnes.size() + administrateurs.size()).append("\n");
+        sb.append("Abonnes: ").append(abonnes.size()).append("\n");
+        sb.append("Morceaux: ").append(catalogue.getMorceaux().size()).append("\n");
+        sb.append("Albums: ").append(catalogue.getAlbums().size()).append("\n");
+        sb.append("Artistes: ").append(catalogue.getArtistes().size()).append("\n");
+        sb.append("Groupes: ").append(catalogue.getGroupes().size()).append("\n");
+        sb.append("Total ecoutes: ").append(catalogue.getTotalEcoutesCatalogue()).append("\n");
+        Morceau topM = catalogue.getMorceauLePlusEcoute();
+        sb.append("Top morceau: ").append(topM == null ? "N/A" : topM.getTitre()).append("\n");
+        Album topA = catalogue.getAlbumLePlusEcoute();
+        sb.append("Top album: ").append(topA == null ? "N/A" : topA.getTitre()).append("\n");
+        Interprete topI = catalogue.getInterpreteLePlusEcoute();
+        sb.append("Top interprete: ").append(topI == null ? "N/A" : topI.getNom());
+        return sb.toString();
+    }
+
     /**
      * Ajoute ou modifie l'avis d'un abonne sur un morceau.
      *

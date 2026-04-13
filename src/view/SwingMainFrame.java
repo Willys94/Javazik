@@ -45,14 +45,24 @@ public class SwingMainFrame extends JFrame {
     private final CardLayout cardLayout = new CardLayout();
     private final JPanel viewStack;
     private final ButtonGroup navGroup = new ButtonGroup();
+    private JToggleButton accueilNavButton;
+    private JToggleButton adminNavButton;
+    private JTextArea adminStatsArea;
+    private JLabel accueilTitreLabel;
+    private JProgressBar ecouteProgressBar;
+    private JButton pauseLectureBtn;
+    private Timer lectureTimer;
+    private boolean lectureEnPause;
 
     private Abonne abonneConnecte;
+    private Administrateur adminConnecte;
     private List<Morceau> morceauxAffiches;
 
     private static final String V_ACCUEIL = "accueil";
     private static final String V_CATALOGUE = "catalogue";
     private static final String V_COMPTE = "compte";
     private static final String V_PLAYLISTS = "playlists";
+    private static final String V_ADMIN = "admin";
 
     public SwingMainFrame(Catalogue catalogue, List<Abonne> abonnes, List<Administrateur> administrateurs, AuthentificationService authService) {
         this.controller = new GuiController(catalogue, abonnes, administrateurs, authService);
@@ -76,6 +86,7 @@ public class SwingMainFrame extends JFrame {
         viewStack.add(wrapPage(buildCataloguePanel()), V_CATALOGUE);
         viewStack.add(wrapPage(buildComptePanel()), V_COMPTE);
         viewStack.add(wrapPage(buildPlaylistsPanel()), V_PLAYLISTS);
+        viewStack.add(wrapPage(buildAdminPanel()), V_ADMIN);
 
         cardLayout.show(viewStack, V_ACCUEIL);
         styleDeep(viewStack);
@@ -107,9 +118,12 @@ public class SwingMainFrame extends JFrame {
         headerUserLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         droite.add(headerUserLabel);
 
-        JPanel gauche = new JPanel();
+        JPanel gauche = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         gauche.setOpaque(false);
-        gauche.setPreferredSize(new Dimension(10, 10));
+        JLabel logo = new JLabel("Javazik");
+        logo.setForeground(COLOR_TEXTE);
+        logo.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        gauche.add(logo);
         header.add(gauche, BorderLayout.WEST);
         header.add(droite, BorderLayout.EAST);
         return header;
@@ -140,16 +154,62 @@ public class SwingMainFrame extends JFrame {
         navTitle.setBorder(BorderFactory.createEmptyBorder(0, 8, 12, 0));
         rail.add(navTitle);
 
-        rail.add(createNavItem("Accueil", V_ACCUEIL, true));
+        accueilNavButton = createNavItem("Accueil", V_ACCUEIL, true);
+        rail.add(accueilNavButton);
         rail.add(Box.createVerticalStrut(6));
         rail.add(createNavItem("Catalogue", V_CATALOGUE, false));
         rail.add(Box.createVerticalStrut(6));
         rail.add(createNavItem("Compte", V_COMPTE, false));
         rail.add(Box.createVerticalStrut(6));
         rail.add(createNavItem("Playlists", V_PLAYLISTS, false));
+        rail.add(Box.createVerticalStrut(6));
+        adminNavButton = createNavItem("Admin", V_ADMIN, false);
+        adminNavButton.setVisible(false);
+        rail.add(adminNavButton);
         rail.add(Box.createVerticalGlue());
 
+        JButton quitterBtn = createRailActionButton("Quitter");
+        JButton deconnexionBtn = createRailActionButton("Deconnexion");
+        quitterBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        deconnexionBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        quitterBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        deconnexionBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        deconnexionBtn.addActionListener(e -> {
+            stopLectureEnCours("Lecture arretee (deconnexion).");
+            abonneConnecte = null;
+            adminConnecte = null;
+            playlistsModel.clear();
+            if (adminNavButton != null) {
+                adminNavButton.setVisible(false);
+            }
+            if (accueilNavButton != null) {
+                accueilNavButton.setSelected(true);
+            }
+            cardLayout.show(viewStack, V_ACCUEIL);
+            updateHeaderUser();
+            statutLabel.setText("Deconnecte.");
+        });
+        quitterBtn.addActionListener(e -> {
+            int choix = JOptionPane.showConfirmDialog(
+                    this,
+                    "Voulez-vous vraiment quitter ?",
+                    "Confirmation",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+            );
+            if (choix == JOptionPane.YES_OPTION) {
+                dispose();
+            }
+        });
+        rail.add(deconnexionBtn);
+        rail.add(Box.createVerticalStrut(6));
+        rail.add(quitterBtn);
+
         return rail;
+    }
+
+    private JButton createRailActionButton(String label) {
+        return new NavRailActionButton(label);
     }
 
     private JToggleButton createNavItem(String label, String card, boolean selected) {
@@ -195,10 +255,45 @@ public class SwingMainFrame extends JFrame {
     }
 
     private void updateHeaderUser() {
-        if (abonneConnecte == null) {
+        if (adminConnecte != null) {
+            headerUserLabel.setText("Admin : " + adminConnecte.getLogin());
+        } else if (abonneConnecte == null) {
             headerUserLabel.setText("Abonne : non connecte");
         } else {
             headerUserLabel.setText("Abonne : " + abonneConnecte.getLogin());
+        }
+        updateAccueilTitre();
+    }
+
+    private void updateAccueilTitre() {
+        if (accueilTitreLabel == null) {
+            return;
+        }
+        if (adminConnecte != null) {
+            accueilTitreLabel.setText("Bienvenue sur Javazik - " + adminConnecte.getLogin());
+        } else if (abonneConnecte != null) {
+            accueilTitreLabel.setText("Bienvenue sur Javazik - " + abonneConnecte.getLogin());
+        } else {
+            accueilTitreLabel.setText("Bienvenue sur Javazik");
+        }
+    }
+
+    private void stopLectureEnCours(String message) {
+        if (lectureTimer != null) {
+            lectureTimer.stop();
+            lectureTimer = null;
+        }
+        lectureEnPause = false;
+        if (pauseLectureBtn != null) {
+            pauseLectureBtn.setText("Pause");
+            pauseLectureBtn.setEnabled(false);
+        }
+        if (ecouteProgressBar != null) {
+            ecouteProgressBar.setValue(0);
+            ecouteProgressBar.setString("Aucune lecture en cours");
+        }
+        if (message != null && !message.isEmpty()) {
+            statutLabel.setText(message);
         }
     }
 
@@ -209,13 +304,13 @@ public class SwingMainFrame extends JFrame {
         JPanel hero = new JPanel(new GridBagLayout());
         hero.setOpaque(false);
 
-        JLabel titre = new JLabel("Bienvenue sur Javazik");
-        titre.setFont(new Font("Segoe UI", Font.BOLD, 54));
-        titre.setForeground(COLOR_TEXTE);
-        titre.setHorizontalAlignment(SwingConstants.CENTER);
-        titre.setVerticalAlignment(SwingConstants.CENTER);
+        accueilTitreLabel = new JLabel("Bienvenue sur Javazik");
+        accueilTitreLabel.setFont(new Font("Segoe UI", Font.BOLD, 54));
+        accueilTitreLabel.setForeground(COLOR_TEXTE);
+        accueilTitreLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        accueilTitreLabel.setVerticalAlignment(SwingConstants.CENTER);
 
-        hero.add(titre);
+        hero.add(accueilTitreLabel);
 
         inner.add(hero, BorderLayout.CENTER);
         return asCard(inner);
@@ -281,7 +376,9 @@ public class SwingMainFrame extends JFrame {
         styleButton(boutonStyle, BTN_PRIMARY);
         JButton boutonReset = new JButton("Tout afficher");
         styleButton(boutonReset, BTN_SECONDARY);
-        row1.add(new JLabel("Mots-cles"));
+        JLabel motsClesLabel = new JLabel("Mots-cles");
+        motsClesLabel.setForeground(COLOR_TEXTE);
+        row1.add(motsClesLabel);
         row1.add(rechercheField);
         row1.add(boutonTitre);
         row1.add(boutonStyle);
@@ -298,11 +395,15 @@ public class SwingMainFrame extends JFrame {
         styleButton(boutonGroupe, BTN_SECONDARY);
         JButton boutonAlbum = new JButton("Par album");
         styleButton(boutonAlbum, BTN_SECONDARY);
-        row2.add(new JLabel("Tri"));
+        JLabel triLabel = new JLabel("Tri");
+        triLabel.setForeground(COLOR_TEXTE);
+        row2.add(triLabel);
         row2.add(triCombo);
         row2.add(boutonTri);
         row2.add(Box.createHorizontalStrut(16));
-        row2.add(new JLabel("Explorer"));
+        JLabel explorerLabel = new JLabel("Explorer");
+        explorerLabel.setForeground(COLOR_TEXTE);
+        row2.add(explorerLabel);
         row2.add(boutonArtiste);
         row2.add(boutonGroupe);
         row2.add(boutonAlbum);
@@ -358,17 +459,17 @@ public class SwingMainFrame extends JFrame {
 
         statutLabel.setForeground(COLOR_ACCENT);
         statutLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        JProgressBar ecouteProgress = new JProgressBar(0, 100);
-        ecouteProgress.setValue(0);
-        ecouteProgress.setStringPainted(true);
-        ecouteProgress.setString("Aucune lecture en cours");
-        ecouteProgress.setBackground(new Color(36, 20, 11));
-        ecouteProgress.setForeground(COLOR_ORANGE);
-        ecouteProgress.setBorder(BorderFactory.createLineBorder(COLOR_LINE, 1));
+        ecouteProgressBar = new JProgressBar(0, 100);
+        ecouteProgressBar.setValue(0);
+        ecouteProgressBar.setStringPainted(true);
+        ecouteProgressBar.setString("Aucune lecture en cours");
+        ecouteProgressBar.setBackground(new Color(36, 20, 11));
+        ecouteProgressBar.setForeground(COLOR_ORANGE);
+        ecouteProgressBar.setBorder(BorderFactory.createLineBorder(COLOR_LINE, 1));
 
         JPanel statusWrap = new JPanel(new BorderLayout(0, 6));
         statusWrap.setOpaque(false);
-        statusWrap.add(ecouteProgress, BorderLayout.NORTH);
+        statusWrap.add(ecouteProgressBar, BorderLayout.NORTH);
         statusWrap.add(statutLabel, BorderLayout.SOUTH);
         listeWrap.add(statusWrap, BorderLayout.SOUTH);
 
@@ -380,15 +481,21 @@ public class SwingMainFrame extends JFrame {
         styleButton(noterBtn, BTN_PRIMARY);
         JButton ecouterBtn = new JButton("Ecouter la selection");
         styleButton(ecouterBtn, BTN_PRIMARY);
+        pauseLectureBtn = new JButton("Pause");
+        styleButton(pauseLectureBtn, BTN_SECONDARY);
+        pauseLectureBtn.setEnabled(false);
         JButton supprimerNoteBtn = new JButton("Supprimer ma note");
         styleButton(supprimerNoteBtn, BTN_SECONDARY);
         JButton voirAvisBtn = new JButton("Voir les avis");
         styleButton(voirAvisBtn, BTN_SECONDARY);
         noterBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         ecouterBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pauseLectureBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         supprimerNoteBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         voirAvisBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         avisCol.add(ecouterBtn);
+        avisCol.add(Box.createVerticalStrut(8));
+        avisCol.add(pauseLectureBtn);
         avisCol.add(Box.createVerticalStrut(8));
         avisCol.add(noterBtn);
         avisCol.add(Box.createVerticalStrut(8));
@@ -510,16 +617,13 @@ public class SwingMainFrame extends JFrame {
             }
         });
 
-        final Timer[] lectureTimerRef = new Timer[1];
         ecouterBtn.addActionListener(e -> {
             Morceau morceau = getMorceauSelectionne(morceauxList);
             if (morceau == null) {
                 JOptionPane.showMessageDialog(this, "Selectionne un morceau.", "Info", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            if (lectureTimerRef[0] != null && lectureTimerRef[0].isRunning()) {
-                lectureTimerRef[0].stop();
-            }
+            stopLectureEnCours(null);
 
             if (abonneConnecte != null) {
                 abonneConnecte.ecouterMorceau(morceau);
@@ -531,27 +635,48 @@ public class SwingMainFrame extends JFrame {
             int intervalMs = 200;
             int totalTicks = Math.max(1, (dureeSecondes * 1000) / intervalMs);
 
-            ecouteProgress.setValue(0);
-            ecouteProgress.setString("Lecture: 0:00 / " + Morceau.formaterDuree(dureeSecondes));
+            ecouteProgressBar.setValue(0);
+            ecouteProgressBar.setString("Lecture: 0:00 / " + Morceau.formaterDuree(dureeSecondes));
             statutLabel.setText("Lecture en cours: " + morceau.getTitre());
 
             final int[] tick = {0};
-            lectureTimerRef[0] = new Timer(intervalMs, evt -> {
+            lectureTimer = new Timer(intervalMs, evt -> {
                 tick[0]++;
                 int percent = Math.min(100, (int) ((tick[0] * 100.0) / totalTicks));
                 int elapsedSeconds = Math.min(dureeSecondes, (tick[0] * intervalMs) / 1000);
-                ecouteProgress.setValue(percent);
-                ecouteProgress.setString("Lecture: " + Morceau.formaterDuree(elapsedSeconds) + " / " + Morceau.formaterDuree(dureeSecondes));
+                ecouteProgressBar.setValue(percent);
+                ecouteProgressBar.setString("Lecture: " + Morceau.formaterDuree(elapsedSeconds) + " / " + Morceau.formaterDuree(dureeSecondes));
 
                 if (tick[0] >= totalTicks) {
                     ((Timer) evt.getSource()).stop();
-                    ecouteProgress.setValue(100);
-                    ecouteProgress.setString("Lecture terminee");
+                    ecouteProgressBar.setValue(100);
+                    ecouteProgressBar.setString("Lecture terminee");
                     statutLabel.setText("Lecture terminee: " + morceau.getTitre());
+                    lectureEnPause = false;
+                    pauseLectureBtn.setText("Pause");
+                    pauseLectureBtn.setEnabled(false);
                     rafraichirListeMorceaux(morceauxAffiches);
                 }
             });
-            lectureTimerRef[0].start();
+            lectureTimer.start();
+            pauseLectureBtn.setEnabled(true);
+        });
+
+        pauseLectureBtn.addActionListener(e -> {
+            if (lectureTimer == null) {
+                return;
+            }
+            if (lectureTimer.isRunning()) {
+                lectureTimer.stop();
+                lectureEnPause = true;
+                pauseLectureBtn.setText("Reprendre");
+                statutLabel.setText("Lecture en pause.");
+            } else if (lectureEnPause) {
+                lectureTimer.start();
+                lectureEnPause = false;
+                pauseLectureBtn.setText("Pause");
+                statutLabel.setText("Lecture reprise.");
+            }
         });
 
         noterBtn.addActionListener(e -> {
@@ -661,6 +786,7 @@ public class SwingMainFrame extends JFrame {
         creation.add(creerBtn, gc);
 
         connecterBtn.addActionListener(e -> {
+            stopLectureEnCours("Lecture arretee (changement de session).");
             String login = loginField.getText();
             String pw = new String(pwField.getPassword());
             Utilisateurs user = controller.connecter(login, pw);
@@ -670,15 +796,37 @@ public class SwingMainFrame extends JFrame {
                 JOptionPane.showMessageDialog(this, "Connecte en tant que " + user.getLogin(), "Info", JOptionPane.INFORMATION_MESSAGE);
                 if (user instanceof Abonne) {
                     abonneConnecte = (Abonne) user;
+                    adminConnecte = null;
                     rafraichirPlaylists();
+                    if (adminNavButton != null) {
+                        adminNavButton.setVisible(false);
+                    }
                 } else {
                     abonneConnecte = null;
+                    adminConnecte = (Administrateur) user;
+                    if (adminNavButton != null) {
+                        adminNavButton.setVisible(true);
+                        adminNavButton.setSelected(true);
+                        cardLayout.show(viewStack, V_ADMIN);
+                    }
+                    if (adminStatsArea != null) {
+                        adminStatsArea.setText(controller.getResumeStatsAdmin());
+                    }
                 }
                 updateHeaderUser();
+                if (accueilNavButton != null) {
+                    accueilNavButton.setSelected(true);
+                }
+                cardLayout.show(viewStack, V_ACCUEIL);
+                if (adminNavButton != null) {
+                    adminNavButton.getParent().revalidate();
+                    adminNavButton.getParent().repaint();
+                }
             }
         });
 
         creerBtn.addActionListener(e -> {
+            stopLectureEnCours("Lecture arretee (changement de session).");
             String login = newLoginField.getText();
             String pw = new String(newPwField.getPassword());
             Abonne abonne = controller.creerCompte(login, pw);
@@ -687,8 +835,16 @@ public class SwingMainFrame extends JFrame {
             } else {
                 JOptionPane.showMessageDialog(this, "Compte cree: " + abonne.getLogin(), "Info", JOptionPane.INFORMATION_MESSAGE);
                 abonneConnecte = abonne;
+                adminConnecte = null;
                 rafraichirPlaylists();
                 updateHeaderUser();
+                if (accueilNavButton != null) {
+                    accueilNavButton.setSelected(true);
+                }
+                cardLayout.show(viewStack, V_ACCUEIL);
+                if (adminNavButton != null) {
+                    adminNavButton.setVisible(false);
+                }
             }
         });
 
@@ -909,6 +1065,173 @@ public class SwingMainFrame extends JFrame {
         return asCard(inner);
     }
 
+    private JPanel buildAdminPanel() {
+        JPanel inner = new JPanel(new BorderLayout(0, 12));
+        inner.setOpaque(false);
+
+        JLabel pageTitle = new JLabel("Administration");
+        pageTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        pageTitle.setForeground(COLOR_TEXTE);
+        JLabel pageSub = new JLabel("Gestion du catalogue, des abonnes et des statistiques");
+        pageSub.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        pageSub.setForeground(COLOR_ACCENT);
+        JPanel head = new JPanel(new GridLayout(2, 1, 0, 4));
+        head.setOpaque(false);
+        head.add(pageTitle);
+        head.add(pageSub);
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 8));
+        actions.setOpaque(false);
+        actions.setBorder(sectionTitle("Actions admin"));
+
+        JButton addMorceauBtn = new JButton("Ajouter morceau");
+        JButton delMorceauBtn = new JButton("Supprimer morceau");
+        JButton addAlbumBtn = new JButton("Ajouter album");
+        JButton delAlbumBtn = new JButton("Supprimer album");
+        JButton addArtisteBtn = new JButton("Ajouter artiste");
+        JButton delArtisteBtn = new JButton("Supprimer artiste");
+        JButton addGroupeBtn = new JButton("Ajouter groupe");
+        JButton delGroupeBtn = new JButton("Supprimer groupe");
+        JButton suspendBtn = new JButton("Suspendre abonne");
+        JButton reactiverBtn = new JButton("Reactiver abonne");
+        JButton supprAbonneBtn = new JButton("Supprimer abonne");
+        JButton statsBtn = new JButton("Rafraichir stats");
+
+        JButton[] boutons = new JButton[]{
+                addMorceauBtn, delMorceauBtn, addAlbumBtn, delAlbumBtn,
+                addArtisteBtn, delArtisteBtn, addGroupeBtn, delGroupeBtn,
+                suspendBtn, reactiverBtn, supprAbonneBtn, statsBtn
+        };
+        for (JButton b : boutons) {
+            styleButton(b, BTN_SECONDARY);
+            actions.add(b);
+        }
+        styleButton(statsBtn, BTN_PRIMARY);
+
+        adminStatsArea = new JTextArea("Connecte-toi en admin pour voir et utiliser cette section.");
+        adminStatsArea.setEditable(false);
+        adminStatsArea.setLineWrap(true);
+        adminStatsArea.setWrapStyleWord(true);
+        adminStatsArea.setBackground(new Color(36, 20, 11));
+        adminStatsArea.setForeground(COLOR_TEXTE);
+        adminStatsArea.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        adminStatsArea.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(1, 1, 2, 1, COLOR_LINE),
+                BorderFactory.createEmptyBorder(10, 12, 10, 12)
+        ));
+
+        JPanel centre = new JPanel(new BorderLayout(0, 10));
+        centre.setOpaque(false);
+        centre.setBorder(sectionTitle("Statistiques"));
+        centre.add(new JScrollPane(adminStatsArea), BorderLayout.CENTER);
+
+        inner.add(head, BorderLayout.NORTH);
+        inner.add(actions, BorderLayout.CENTER);
+        inner.add(centre, BorderLayout.SOUTH);
+
+        addMorceauBtn.addActionListener(e -> {
+            if (!isAdminConnecte()) return;
+            String titre = JOptionPane.showInputDialog(this, "Titre du morceau:");
+            if (titre == null) return;
+            String dureeStr = JOptionPane.showInputDialog(this, "Duree (secondes):");
+            if (dureeStr == null) return;
+            String style = JOptionPane.showInputDialog(this, "Style:");
+            if (style == null) return;
+            String[] types = {"Artiste", "Groupe"};
+            String type = (String) JOptionPane.showInputDialog(this, "Type interprete:", "Type",
+                    JOptionPane.PLAIN_MESSAGE, null, types, types[0]);
+            if (type == null) return;
+            String nom = JOptionPane.showInputDialog(this, "Nom interprete:");
+            if (nom == null) return;
+            try {
+                int duree = Integer.parseInt(dureeStr);
+                if (controller.adminAjouterMorceau(titre, duree, style, type, nom)) {
+                    rafraichirListeMorceaux(controller.getMorceaux());
+                    statutLabel.setText("Morceau ajoute.");
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Donnees invalides.", "Info", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+        delMorceauBtn.addActionListener(e -> {
+            if (!isAdminConnecte()) return;
+            Morceau m = choisirMorceau(controller.getMorceaux());
+            if (m != null && controller.adminSupprimerMorceau(m)) {
+                rafraichirListeMorceaux(controller.getMorceaux());
+                statutLabel.setText("Morceau supprime.");
+            }
+        });
+        addAlbumBtn.addActionListener(e -> {
+            if (!isAdminConnecte()) return;
+            String titre = JOptionPane.showInputDialog(this, "Titre de l'album:");
+            if (titre == null) return;
+            String anneeStr = JOptionPane.showInputDialog(this, "Annee:");
+            if (anneeStr == null) return;
+            String[] types = {"Artiste", "Groupe"};
+            String type = (String) JOptionPane.showInputDialog(this, "Type interprete:", "Type",
+                    JOptionPane.PLAIN_MESSAGE, null, types, types[0]);
+            if (type == null) return;
+            String nom = JOptionPane.showInputDialog(this, "Nom interprete:");
+            if (nom == null) return;
+            try {
+                int annee = Integer.parseInt(anneeStr);
+                if (controller.adminAjouterAlbum(titre, annee, type, nom)) {
+                    statutLabel.setText("Album ajoute.");
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Donnees invalides.", "Info", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+        delAlbumBtn.addActionListener(e -> {
+            if (!isAdminConnecte()) return;
+            Album a = choisirAlbum(controller.getAlbums());
+            if (a != null && controller.adminSupprimerAlbum(a)) statutLabel.setText("Album supprime.");
+        });
+        addArtisteBtn.addActionListener(e -> {
+            if (!isAdminConnecte()) return;
+            String nom = JOptionPane.showInputDialog(this, "Nom de l'artiste:");
+            if (nom == null) return;
+            if (controller.adminAjouterArtiste(nom)) statutLabel.setText("Artiste ajoute.");
+        });
+        delArtisteBtn.addActionListener(e -> {
+            if (!isAdminConnecte()) return;
+            Artiste a = choisirArtiste(controller.getArtistes());
+            if (a != null && controller.adminSupprimerArtiste(a)) statutLabel.setText("Artiste supprime.");
+        });
+        addGroupeBtn.addActionListener(e -> {
+            if (!isAdminConnecte()) return;
+            String nom = JOptionPane.showInputDialog(this, "Nom du groupe:");
+            if (nom == null) return;
+            if (controller.adminAjouterGroupe(nom)) statutLabel.setText("Groupe ajoute.");
+        });
+        delGroupeBtn.addActionListener(e -> {
+            if (!isAdminConnecte()) return;
+            Groupe g = choisirGroupe(controller.getGroupes());
+            if (g != null && controller.adminSupprimerGroupe(g)) statutLabel.setText("Groupe supprime.");
+        });
+        suspendBtn.addActionListener(e -> {
+            if (!isAdminConnecte()) return;
+            Abonne a = choisirAbonne(controller.getAbonnes());
+            if (a != null && controller.adminSuspendreAbonne(a)) statutLabel.setText("Abonne suspendu.");
+        });
+        reactiverBtn.addActionListener(e -> {
+            if (!isAdminConnecte()) return;
+            Abonne a = choisirAbonne(controller.getAbonnes());
+            if (a != null && controller.adminReactiverAbonne(a)) statutLabel.setText("Abonne reactive.");
+        });
+        supprAbonneBtn.addActionListener(e -> {
+            if (!isAdminConnecte()) return;
+            Abonne a = choisirAbonne(controller.getAbonnes());
+            if (a != null && controller.adminSupprimerAbonne(a)) statutLabel.setText("Abonne supprime.");
+        });
+        statsBtn.addActionListener(e -> {
+            if (!isAdminConnecte()) return;
+            adminStatsArea.setText(controller.getResumeStatsAdmin());
+        });
+
+        return asCard(inner);
+    }
+
     private void styleButton(JButton b, String kind) {
         b.putClientProperty(STYLE_BUTTON, kind);
         b.setFocusPainted(false);
@@ -1121,6 +1444,70 @@ public class SwingMainFrame extends JFrame {
         return null;
     }
 
+    private Morceau choisirMorceau(List<Morceau> morceaux) {
+        if (morceaux == null || morceaux.isEmpty()) {
+            return null;
+        }
+        String[] options = new String[morceaux.size()];
+        for (int i = 0; i < morceaux.size(); i++) {
+            options[i] = morceaux.get(i).getTitre();
+        }
+        String choix = (String) JOptionPane.showInputDialog(
+                this,
+                "Selectionne un morceau:",
+                "Selection morceau",
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                options,
+                options[0]
+        );
+        if (choix == null) {
+            return null;
+        }
+        for (Morceau m : morceaux) {
+            if (m.getTitre().equals(choix)) {
+                return m;
+            }
+        }
+        return null;
+    }
+
+    private Abonne choisirAbonne(List<Abonne> abonnes) {
+        if (abonnes == null || abonnes.isEmpty()) {
+            return null;
+        }
+        String[] options = new String[abonnes.size()];
+        for (int i = 0; i < abonnes.size(); i++) {
+            options[i] = abonnes.get(i).getLogin();
+        }
+        String choix = (String) JOptionPane.showInputDialog(
+                this,
+                "Selectionne un abonne:",
+                "Selection abonne",
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                options,
+                options[0]
+        );
+        if (choix == null) {
+            return null;
+        }
+        for (Abonne a : abonnes) {
+            if (a.getLogin().equals(choix)) {
+                return a;
+            }
+        }
+        return null;
+    }
+
+    private boolean isAdminConnecte() {
+        if (adminConnecte == null) {
+            JOptionPane.showMessageDialog(this, "Connecte-toi en tant qu'administrateur.", "Info", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        return true;
+    }
+
     private Morceau getMorceauSelectionne(JList<String> morceauxList) {
         int index = morceauxList.getSelectedIndex();
         if (index < 0 || index >= morceauxAffiches.size()) {
@@ -1186,6 +1573,34 @@ public class SwingMainFrame extends JFrame {
                 g2.setColor(COLOR_ORANGE);
                 g2.fillRect(0, 0, 4, h);
             } else if (getModel().isRollover()) {
+                g2.setColor(new Color(255, 255, 255, 18));
+                g2.fillRect(0, 0, w, h);
+            }
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    private static final class NavRailActionButton extends JButton {
+        NavRailActionButton(String text) {
+            super(text);
+            setFont(new Font("Segoe UI", Font.PLAIN, 15));
+            setForeground(COLOR_TEXTE);
+            setOpaque(false);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setMargin(new Insets(10, 14, 10, 14));
+            setHorizontalAlignment(SwingConstants.LEFT);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            int w = getWidth();
+            int h = getHeight();
+            if (getModel().isRollover()) {
                 g2.setColor(new Color(255, 255, 255, 18));
                 g2.fillRect(0, 0, w, h);
             }
