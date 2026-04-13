@@ -73,9 +73,9 @@ public class JavazikController {
                         vue.afficherMessage("Connexion reussie : " + utilisateurConnecte.getLogin());
 
                         if (utilisateurConnecte instanceof Abonne) {
-                            MenuController.menuAbonne(clavier, catalogue, (Abonne) utilisateurConnecte);
+                            MenuController.menuAbonne(clavier, catalogue, (Abonne) utilisateurConnecte, abonnes, "src/txt/playlists.txt");
                         } else if (utilisateurConnecte instanceof Administrateur) {
-                            MenuController.menuAdministrateur(clavier, catalogue, abonnes, (Administrateur) utilisateurConnecte);
+                            MenuController.menuAdministrateur(clavier, catalogue, abonnes, (Administrateur) utilisateurConnecte,"src/txt/abonnes.txt","src/txt/artistes.txt","src/txt/groupes.txt","src/txt/morceaux.txt","src/txt/albums.txt");
                         }
                     }
                     break;
@@ -93,7 +93,7 @@ public class JavazikController {
                     } else {
                         vue.afficherMessage("Compte cree avec succes.");
                         vue.afficherMessage("Bienvenue " + nouvelAbonne.getLogin());
-                        MenuController.menuAbonne(clavier, catalogue, nouvelAbonne);
+                        MenuController.menuAbonne(clavier, catalogue, nouvelAbonne, abonnes, "src/txt/playlists.txt");
                     }
                     break;
 
