@@ -2,6 +2,7 @@ package main;
 
 import classes.*;
 import controller.JavazikController;
+import controller.PersistenceService;
 import view.ConsoleView;
 import view.SwingMainFrame;
 
@@ -41,11 +42,19 @@ public class Main {
         GestionFichier.chargerPlaylists("src/txt/playlists.txt", abonnes, morceaux);
 
         AuthentificationService authService = new AuthentificationService();
+        PersistenceService persistenceService = new PersistenceService(
+                "src/txt/abonnes.txt",
+                "src/txt/artistes.txt",
+                "src/txt/groupes.txt",
+                "src/txt/morceaux.txt",
+                "src/txt/albums.txt",
+                "src/txt/playlists.txt"
+        );
 
         boolean modeGraphique = args.length > 0 && args[0].equalsIgnoreCase("gui");
         if (modeGraphique) {
             SwingUtilities.invokeLater(() -> {
-                SwingMainFrame frame = new SwingMainFrame(catalogue, abonnes, administrateurs, authService);
+                SwingMainFrame frame = new SwingMainFrame(catalogue, abonnes, administrateurs, authService, persistenceService);
                 frame.setVisible(true);
             });
             return;
@@ -53,8 +62,11 @@ public class Main {
 
         Scanner clavier = new Scanner(System.in);
         ConsoleView vue = new ConsoleView(clavier);
-        JavazikController controller = new JavazikController(vue, clavier, catalogue, abonnes, administrateurs, authService);
+        JavazikController controller = new JavazikController(
+                vue, clavier, catalogue, abonnes, administrateurs, authService, persistenceService
+        );
         controller.lancer();
+        persistenceService.saveAll(catalogue, abonnes);
 
         clavier.close();
     }

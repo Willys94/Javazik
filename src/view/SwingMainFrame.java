@@ -2,6 +2,7 @@ package view;
 
 import classes.*;
 import controller.GuiController;
+import controller.PersistenceService;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -64,8 +65,9 @@ public class SwingMainFrame extends JFrame {
     private static final String V_PLAYLISTS = "playlists";
     private static final String V_ADMIN = "admin";
 
-    public SwingMainFrame(Catalogue catalogue, List<Abonne> abonnes, List<Administrateur> administrateurs, AuthentificationService authService) {
-        this.controller = new GuiController(catalogue, abonnes, administrateurs, authService);
+    public SwingMainFrame(Catalogue catalogue, List<Abonne> abonnes, List<Administrateur> administrateurs,
+                          AuthentificationService authService, PersistenceService persistenceService) {
+        this.controller = new GuiController(catalogue, abonnes, administrateurs, authService, persistenceService);
         this.morceauxModel = new DefaultListModel<>();
         this.playlistsModel = new DefaultListModel<>();
         this.statutLabel = new JLabel("Pret.");
@@ -79,6 +81,12 @@ public class SwingMainFrame extends JFrame {
         setSize(1100, 700);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                controller.saveAll();
+            }
+        });
 
         setContentPane(buildRoot());
 
@@ -198,6 +206,7 @@ public class SwingMainFrame extends JFrame {
                     JOptionPane.QUESTION_MESSAGE
             );
             if (choix == JOptionPane.YES_OPTION) {
+                controller.saveAll();
                 dispose();
             }
         });
@@ -625,10 +634,9 @@ public class SwingMainFrame extends JFrame {
             }
             stopLectureEnCours(null);
 
-            if (abonneConnecte != null) {
-                abonneConnecte.ecouterMorceau(morceau);
-            } else {
-                morceau.incrementerEcoutes();
+            if (!controller.ecouterMorceau(abonneConnecte, morceau)) {
+                JOptionPane.showMessageDialog(this, "Lecture impossible.", "Info", JOptionPane.WARNING_MESSAGE);
+                return;
             }
 
             int dureeSecondes = Math.max(1, morceau.getDuree());

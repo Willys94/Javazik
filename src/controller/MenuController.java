@@ -164,10 +164,13 @@ public class MenuController {
                         break;
                     }
                     Morceau morceauEcoute = catalogue.getMorceaux().get(choixEcoute - 1);
-                    morceauEcoute.incrementerEcoutes();
-                    nbEcoutesInvite++;
-                    System.out.println("Vous ecoutez : " + morceauEcoute.getTitre());
-                    System.out.println("Ecoutes invite : " + nbEcoutesInvite + "/" + limiteEcoutes);
+                    if (SharedService.ecouterMorceauInvite(morceauEcoute)) {
+                        nbEcoutesInvite++;
+                        System.out.println("Vous ecoutez : " + morceauEcoute.getTitre());
+                        System.out.println("Ecoutes invite : " + nbEcoutesInvite + "/" + limiteEcoutes);
+                    } else {
+                        System.out.println("Lecture impossible.");
+                    }
                     break;
                 case 9:
                     continuer = false;
@@ -191,7 +194,7 @@ public class MenuController {
      * @param catalogue catalogue musical
      * @param abonne abonne connecte
      */
-    public static void menuAbonne(Scanner clavier, Catalogue catalogue, Abonne abonne, List<Abonne> abonnes, String cheminPlaylists) {
+    public static void menuAbonne(Scanner clavier, Catalogue catalogue, Abonne abonne, List<Abonne> abonnes, PersistenceService persistenceService) {
         boolean continuer = true;
         while (continuer) {
             try {
@@ -338,10 +341,12 @@ public class MenuController {
                     }
                     System.out.print("Nom de la playlist : ");
                     String nomPlaylist = clavier.nextLine();
-                    Playlist nouvellePlaylist = new Playlist(nomPlaylist, abonne);
-                    abonne.ajouterPlaylist(nouvellePlaylist);
-                    GestionFichier.sauvegarderPlaylists(cheminPlaylists, abonnes);
-                    System.out.println("Playlist creee avec succes.");
+                    if (SharedService.creerPlaylist(abonne, nomPlaylist)) {
+                        persistenceService.savePlaylists(abonnes);
+                        System.out.println("Playlist creee avec succes.");
+                    } else {
+                        System.out.println("Nom invalide.");
+                    }
                     break;
                 case 9:
                     if (abonne.estSuspendu()) {
@@ -374,9 +379,10 @@ public class MenuController {
                         break;
                     }
                     Morceau morceauChoisi = catalogue.getMorceaux().get(choixMorceau - 1);
-                    playlistChoisie.ajouterMorceau(morceauChoisi);
-                    GestionFichier.sauvegarderPlaylists(cheminPlaylists, abonnes);
-                    System.out.println("Morceau ajoute a la playlist.");
+                    if (SharedService.ajouterMorceauAPlaylist(playlistChoisie, morceauChoisi)) {
+                        persistenceService.savePlaylists(abonnes);
+                        System.out.println("Morceau ajoute a la playlist.");
+                    }
                     break;
                 case 10:
                     System.out.println("\n--- Playlists ---");
@@ -429,7 +435,6 @@ public class MenuController {
                         break;
                     }
                     Playlist playlistASupprimerMorceau = abonne.getPlaylists().get(indexPlaylistSupp - 1);
-                    GestionFichier.sauvegarderPlaylists(cheminPlaylists, abonnes);
                     if (playlistASupprimerMorceau.getMorceaux().isEmpty()) {
                         System.out.println("Cette playlist est vide.");
                         break;
@@ -445,8 +450,10 @@ public class MenuController {
                         break;
                     }
                     Morceau morceauARetirer = playlistASupprimerMorceau.getMorceaux().get(indexMorceauSupp - 1);
-                    playlistASupprimerMorceau.retirerMorceau(morceauARetirer);
-                    System.out.println("Morceau retire de la playlist.");
+                    if (SharedService.retirerMorceauDePlaylist(playlistASupprimerMorceau, morceauARetirer)) {
+                        persistenceService.savePlaylists(abonnes);
+                        System.out.println("Morceau retire de la playlist.");
+                    }
                     break;
                 case 13:
                     if (abonne.getPlaylists().isEmpty()) {
@@ -470,9 +477,10 @@ public class MenuController {
                         System.out.println("Nom invalide.");
                         break;
                     }
-                    playlistARenommer.renommer(nouveauNom);
-                    GestionFichier.sauvegarderPlaylists(cheminPlaylists, abonnes);
-                    System.out.println("Playlist renommee avec succes.");
+                    if (SharedService.renommerPlaylist(playlistARenommer, nouveauNom)) {
+                        persistenceService.savePlaylists(abonnes);
+                        System.out.println("Playlist renommee avec succes.");
+                    }
                     break;
                 case 14:
                     if (abonne.getPlaylists().isEmpty()) {
@@ -490,9 +498,10 @@ public class MenuController {
                         break;
                     }
                     Playlist playlistASupprimer = abonne.getPlaylists().get(indexPlaylistSupprimer - 1);
-                    abonne.supprimerPlaylist(playlistASupprimer);
-                    GestionFichier.sauvegarderPlaylists(cheminPlaylists, abonnes);
-                    System.out.println("Playlist supprimee avec succes.");
+                    if (SharedService.supprimerPlaylist(abonne, playlistASupprimer)) {
+                        persistenceService.savePlaylists(abonnes);
+                        System.out.println("Playlist supprimee avec succes.");
+                    }
                     break;
                 case 15:
                     if (abonne.estSuspendu()) {
@@ -510,9 +519,13 @@ public class MenuController {
                         break;
                     }
                     Morceau morceauEcoute = catalogue.getMorceaux().get(choixEcoute - 1);
-                    abonne.ecouterMorceau(morceauEcoute);
-                    System.out.println("Vous ecoutez : " + morceauEcoute.getTitre());
-                    System.out.println("Nombre d'ecoutes de cet abonne pour ce morceau : " + abonne.getNbEcoutesMorceau(morceauEcoute));
+                    if (SharedService.ecouterMorceauAbonne(abonne, morceauEcoute)) {
+                        persistenceService.saveCatalogue(catalogue);
+                        System.out.println("Vous ecoutez : " + morceauEcoute.getTitre());
+                        System.out.println("Nombre d'ecoutes de cet abonne pour ce morceau : " + abonne.getNbEcoutesMorceau(morceauEcoute));
+                    } else {
+                        System.out.println("Lecture impossible.");
+                    }
                     break;
                 case 16:
                     System.out.println("\n--- Historique d'ecoute ---");
@@ -549,7 +562,7 @@ public class MenuController {
                     clavier.nextLine();
                     System.out.print("Commentaire (optionnel) : ");
                     String commentaire = clavier.nextLine();
-                    if (morceauANoter.ajouterOuModifierAvis(abonne.getLogin(), note, commentaire)) {
+                    if (SharedService.noterMorceau(abonne, morceauANoter, note, commentaire)) {
                         System.out.println("Avis enregistre.");
                     } else {
                         System.out.println("Note invalide (elle doit etre comprise entre 1 et 5).");
@@ -571,7 +584,7 @@ public class MenuController {
                         break;
                     }
                     Morceau morceauSuppAvis = catalogue.getMorceaux().get(indexMorceauSupprAvis - 1);
-                    if (morceauSuppAvis.supprimerAvis(abonne.getLogin())) {
+                    if (SharedService.supprimerNote(abonne, morceauSuppAvis)) {
                         System.out.println("Avis supprime.");
                     } else {
                         System.out.println("Vous n'avez pas d'avis sur ce morceau.");
@@ -653,7 +666,7 @@ public class MenuController {
      * @param abonnes liste des abonnes
      * @param admin administrateur connecte
      */
-    public static void menuAdministrateur(Scanner clavier, Catalogue catalogue, List<Abonne> abonnes, Administrateur admin, String cheminAbonnes, String cheminArtistes, String cheminGroupes, String cheminMorceaux, String cheminAlbums) {
+    public static void menuAdministrateur(Scanner clavier, Catalogue catalogue, List<Abonne> abonnes, Administrateur admin, PersistenceService persistenceService) {
         boolean continuer = true;
         while (continuer) {
             try {
@@ -691,21 +704,11 @@ public class MenuController {
                     clavier.nextLine();
                     System.out.print("Nom de l'interprete : ");
                     String nomInterprete = clavier.nextLine();
-                    Interprete interpreteMorceau;
-                    if (typeInterprete == 1) {
-                        interpreteMorceau = new Artiste(nomInterprete);
-                        admin.ajouterArtisteCatalogue(catalogue, (Artiste) interpreteMorceau);
-                    } else {
-                        interpreteMorceau = new Groupe(nomInterprete);
-                        admin.ajouterGroupeCatalogue(catalogue, (Groupe) interpreteMorceau);
+                    String typeNom = typeInterprete == 1 ? "Artiste" : "Groupe";
+                    if (SharedService.adminAjouterMorceau(catalogue, titreMorceau, dureeMorceau, styleMorceau, typeNom, nomInterprete)) {
+                        persistenceService.saveCatalogue(catalogue);
+                        System.out.println("Morceau ajoute au catalogue.");
                     }
-                    int nouvelIdMorceau = catalogue.getMorceaux().size() + 1;
-                    Morceau nouveauMorceau = new Morceau(nouvelIdMorceau, titreMorceau, dureeMorceau, styleMorceau, 0, interpreteMorceau);
-                    admin.ajouterMorceauCatalogue(catalogue, nouveauMorceau);
-                    GestionFichier.sauvegarderArtistes(cheminArtistes, catalogue.getArtistes());
-                    GestionFichier.sauvegarderGroupes(cheminGroupes, catalogue.getGroupes());
-                    GestionFichier.sauvegarderMorceaux(cheminMorceaux, catalogue.getMorceaux());
-                    System.out.println("Morceau ajoute au catalogue.");
                     break;
                 case 2:
                     if (catalogue.getMorceaux().isEmpty()) {
@@ -723,9 +726,10 @@ public class MenuController {
                         break;
                     }
                     Morceau morceauASupprimer = catalogue.getMorceaux().get(indexSuppMorceau - 1);
-                    admin.supprimerMorceauCatalogue(catalogue, morceauASupprimer);
-                    GestionFichier.sauvegarderMorceaux(cheminMorceaux, catalogue.getMorceaux());
-                    System.out.println("Morceau supprime du catalogue.");
+                    if (SharedService.adminSupprimerMorceau(catalogue, morceauASupprimer)) {
+                        persistenceService.saveCatalogue(catalogue);
+                        System.out.println("Morceau supprime du catalogue.");
+                    }
                     break;
                 case 3:
                     System.out.print("Titre de l'album : ");
@@ -738,21 +742,11 @@ public class MenuController {
                     clavier.nextLine();
                     System.out.print("Nom de l'interprete : ");
                     String nomInterpreteAlbum = clavier.nextLine();
-                    Interprete interpreteAlbum;
-                    if (typeInterpreteAlbum == 1) {
-                        interpreteAlbum = new Artiste(nomInterpreteAlbum);
-                        admin.ajouterArtisteCatalogue(catalogue, (Artiste) interpreteAlbum);
-                    } else {
-                        interpreteAlbum = new Groupe(nomInterpreteAlbum);
-                        admin.ajouterGroupeCatalogue(catalogue, (Groupe) interpreteAlbum);
+                    String typeNomAlbum = typeInterpreteAlbum == 1 ? "Artiste" : "Groupe";
+                    if (SharedService.adminAjouterAlbum(catalogue, titreAlbum, anneeAlbum, typeNomAlbum, nomInterpreteAlbum)) {
+                        persistenceService.saveCatalogue(catalogue);
+                        System.out.println("Album ajoute au catalogue.");
                     }
-                    int nouvelIdAlbum = catalogue.getAlbums().size() + 1;
-                    Album nouvelAlbum = new Album(nouvelIdAlbum, titreAlbum, anneeAlbum, interpreteAlbum);
-                    admin.ajouterAlbumCatalogue(catalogue, nouvelAlbum);
-                    GestionFichier.sauvegarderArtistes(cheminArtistes, catalogue.getArtistes());
-                    GestionFichier.sauvegarderGroupes(cheminGroupes, catalogue.getGroupes());
-                    GestionFichier.sauvegarderAlbums(cheminAlbums, catalogue.getAlbums());
-                    System.out.println("Album ajoute au catalogue.");
                     break;
                 case 4:
                     if (catalogue.getAlbums().isEmpty()) {
@@ -770,17 +764,18 @@ public class MenuController {
                         break;
                     }
                     Album albumASupprimer = catalogue.getAlbums().get(indexSuppAlbum - 1);
-                    admin.supprimerAlbumCatalogue(catalogue, albumASupprimer);
-                    GestionFichier.sauvegarderAlbums(cheminAlbums, catalogue.getAlbums());
-                    System.out.println("Album supprime du catalogue.");
+                    if (SharedService.adminSupprimerAlbum(catalogue, albumASupprimer)) {
+                        persistenceService.saveCatalogue(catalogue);
+                        System.out.println("Album supprime du catalogue.");
+                    }
                     break;
                 case 5:
                     System.out.print("Nom de l'artiste : ");
                     String nomNouvelArtiste = clavier.nextLine();
-                    Artiste nouvelArtiste = new Artiste(nomNouvelArtiste);
-                    admin.ajouterArtisteCatalogue(catalogue, nouvelArtiste);
-                    GestionFichier.sauvegarderArtistes(cheminArtistes, catalogue.getArtistes());
-                    System.out.println("Artiste ajoute au catalogue.");
+                    if (SharedService.adminAjouterArtiste(catalogue, nomNouvelArtiste)) {
+                        persistenceService.saveCatalogue(catalogue);
+                        System.out.println("Artiste ajoute au catalogue.");
+                    }
                     break;
                 case 6:
                     if (catalogue.getArtistes().isEmpty()) {
@@ -798,17 +793,18 @@ public class MenuController {
                         break;
                     }
                     Artiste artisteASupprimer = catalogue.getArtistes().get(indexArtiste - 1);
-                    admin.supprimerArtisteCatalogue(catalogue, artisteASupprimer);
-                    GestionFichier.sauvegarderArtistes(cheminArtistes, catalogue.getArtistes());
-                    System.out.println("Artiste supprime du catalogue.");
+                    if (SharedService.adminSupprimerArtiste(catalogue, artisteASupprimer)) {
+                        persistenceService.saveCatalogue(catalogue);
+                        System.out.println("Artiste supprime du catalogue.");
+                    }
                     break;
                 case 7:
                     System.out.print("Nom du groupe : ");
                     String nomNouveauGroupe = clavier.nextLine();
-                    Groupe nouveauGroupe = new Groupe(nomNouveauGroupe);
-                    admin.ajouterGroupeCatalogue(catalogue, nouveauGroupe);
-                    GestionFichier.sauvegarderGroupes(cheminGroupes, catalogue.getGroupes());
-                    System.out.println("Groupe ajoute au catalogue.");
+                    if (SharedService.adminAjouterGroupe(catalogue, nomNouveauGroupe)) {
+                        persistenceService.saveCatalogue(catalogue);
+                        System.out.println("Groupe ajoute au catalogue.");
+                    }
                     break;
                 case 8:
                     if (catalogue.getGroupes().isEmpty()) {
@@ -826,9 +822,10 @@ public class MenuController {
                         break;
                     }
                     Groupe groupeASupprimer = catalogue.getGroupes().get(indexGroupe - 1);
-                    admin.supprimerGroupeCatalogue(catalogue, groupeASupprimer);
-                    GestionFichier.sauvegarderGroupes(cheminGroupes, catalogue.getGroupes());
-                    System.out.println("Groupe supprime du catalogue.");
+                    if (SharedService.adminSupprimerGroupe(catalogue, groupeASupprimer)) {
+                        persistenceService.saveCatalogue(catalogue);
+                        System.out.println("Groupe supprime du catalogue.");
+                    }
                     break;
                 case 9:
                     System.out.println("\n--- Liste des abonnes ---");
@@ -856,9 +853,10 @@ public class MenuController {
                         break;
                     }
                     Abonne abonneASuspendre = abonnes.get(indexAbonneSuspendre - 1);
-                    admin.suspendreAbonne(abonneASuspendre);
-                    GestionFichier.sauvegarderAbonnes(cheminAbonnes, abonnes);
-                    System.out.println("Abonne suspendu avec succes.");
+                    if (SharedService.adminSuspendreAbonne(abonneASuspendre)) {
+                        persistenceService.saveAccounts(abonnes);
+                        System.out.println("Abonne suspendu avec succes.");
+                    }
                     break;
                 case 11:
                     if (abonnes.isEmpty()) {
@@ -876,9 +874,10 @@ public class MenuController {
                         break;
                     }
                     Abonne abonneAReactiver = abonnes.get(indexAbonneReactiver - 1);
-                    admin.reactiverAbonne(abonneAReactiver);
-                    GestionFichier.sauvegarderAbonnes(cheminAbonnes, abonnes);
-                    System.out.println("Abonne reactive avec succes.");
+                    if (SharedService.adminReactiverAbonne(abonneAReactiver)) {
+                        persistenceService.saveAccounts(abonnes);
+                        System.out.println("Abonne reactive avec succes.");
+                    }
                     break;
                 case 12:
                     if (abonnes.isEmpty()) {
@@ -896,9 +895,11 @@ public class MenuController {
                         break;
                     }
                     Abonne abonneASupprimer = abonnes.get(indexSuppAbonne - 1);
-                    admin.supprimerAbonne(abonnes, abonneASupprimer);
-                    GestionFichier.sauvegarderAbonnes(cheminAbonnes, abonnes);
-                    System.out.println("Abonne supprime avec succes.");
+                    if (SharedService.adminSupprimerAbonne(abonnes, abonneASupprimer)) {
+                        persistenceService.saveAccounts(abonnes);
+                        persistenceService.savePlaylists(abonnes);
+                        System.out.println("Abonne supprime avec succes.");
+                    }
                     break;
                 case 13:
                     System.out.println("\n--- Statistiques globales ---");
