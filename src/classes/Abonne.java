@@ -30,16 +30,31 @@ public class Abonne extends Utilisateurs {
         this.suspendu = false;
     }
 
+    /**
+     * Ajoute une playlist à l'abonné si elle n'existe pas déjà.
+     *
+     * @param playlist playlist à ajouter
+     */
     public void ajouterPlaylist(Playlist playlist) {
         if (playlist != null && !playlists.contains(playlist)) {
             playlists.add(playlist);
         }
     }
 
+    /**
+     * Supprime une playlist de l'abonné.
+     *
+     * @param playlist playlist à retirer
+     */
     public void supprimerPlaylist(Playlist playlist) {
         playlists.remove(playlist);
     }
 
+    /**
+     * Retourne les playlists de l'abonné.
+     *
+     * @return liste des playlists
+     */
     public List<Playlist> getPlaylists() {
         return playlists;
     }
@@ -57,22 +72,44 @@ public class Abonne extends Utilisateurs {
         }
     }
 
+    /**
+     * Retourne l'historique d'écoute de l'abonné.
+     *
+     * @return liste chronologique des morceaux écoutés
+     */
     public List<Morceau> getHistorique() {
         return historique;
     }
 
+    /**
+     * Retourne le nombre d'écoutes d'un morceau par cet abonné.
+     *
+     * @param morceau morceau à consulter
+     * @return nombre d'écoutes enregistrées
+     */
     public int getNbEcoutesMorceau(Morceau morceau) {
         return nbEcoutesParMorceau.getOrDefault(morceau, 0);
     }
 
+    /**
+     * Indique si l'abonné est suspendu.
+     *
+     * @return {@code true} si suspendu, sinon {@code false}
+     */
     public boolean estSuspendu() {
         return suspendu;
     }
 
+    /**
+     * Met l'abonné en état suspendu.
+     */
     public void suspendre() {
         this.suspendu = true;
     }
 
+    /**
+     * Retire l'état suspendu de l'abonné.
+     */
     public void reactiver() {
         this.suspendu = false;
     }

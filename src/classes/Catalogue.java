@@ -15,6 +15,9 @@ public class Catalogue {
     private List<Artiste> artistes;
     private List<Groupe> groupes;
 
+    /**
+     * Crée un catalogue vide.
+     */
     public Catalogue() {
         this.morceaux = new ArrayList<>();
         this.albums = new ArrayList<>();
@@ -22,58 +25,118 @@ public class Catalogue {
         this.groupes = new ArrayList<>();
     }
 
+    /**
+     * Ajoute un morceau au catalogue.
+     *
+     * @param morceau morceau à ajouter
+     */
     public void ajouterMorceau(Morceau morceau) {
         if (morceau != null && !morceaux.contains(morceau)) {
             morceaux.add(morceau);
         }
     }
 
+    /**
+     * Retire un morceau du catalogue.
+     *
+     * @param morceau morceau à retirer
+     */
     public void supprimerMorceau(Morceau morceau) {
         morceaux.remove(morceau);
     }
 
+    /**
+     * Ajoute un album au catalogue.
+     *
+     * @param album album à ajouter
+     */
     public void ajouterAlbum(Album album) {
         if (album != null && !albums.contains(album)) {
             albums.add(album);
         }
     }
 
+    /**
+     * Retire un album du catalogue.
+     *
+     * @param album album à retirer
+     */
     public void supprimerAlbum(Album album) {
         albums.remove(album);
     }
 
+    /**
+     * Ajoute un artiste au catalogue.
+     *
+     * @param artiste artiste à ajouter
+     */
     public void ajouterArtiste(Artiste artiste) {
         if (artiste != null && !artistes.contains(artiste)) {
             artistes.add(artiste);
         }
     }
 
+    /**
+     * Retire un artiste du catalogue.
+     *
+     * @param artiste artiste à retirer
+     */
     public void supprimerArtiste(Artiste artiste) {
         artistes.remove(artiste);
     }
 
+    /**
+     * Ajoute un groupe au catalogue.
+     *
+     * @param groupe groupe à ajouter
+     */
     public void ajouterGroupe(Groupe groupe) {
         if (groupe != null && !groupes.contains(groupe)) {
             groupes.add(groupe);
         }
     }
 
+    /**
+     * Retire un groupe du catalogue.
+     *
+     * @param groupe groupe à retirer
+     */
     public void supprimerGroupe(Groupe groupe) {
         groupes.remove(groupe);
     }
 
+    /**
+     * Retourne tous les morceaux du catalogue.
+     *
+     * @return liste des morceaux
+     */
     public List<Morceau> getMorceaux() {
         return morceaux;
     }
 
+    /**
+     * Retourne tous les albums du catalogue.
+     *
+     * @return liste des albums
+     */
     public List<Album> getAlbums() {
         return albums;
     }
 
+    /**
+     * Retourne tous les artistes du catalogue.
+     *
+     * @return liste des artistes
+     */
     public List<Artiste> getArtistes() {
         return artistes;
     }
 
+    /**
+     * Retourne tous les groupes du catalogue.
+     *
+     * @return liste des groupes
+     */
     public List<Groupe> getGroupes() {
         return groupes;
     }
@@ -101,6 +164,12 @@ public class Catalogue {
         return resultats;
     }
 
+    /**
+     * Recherche des albums par correspondance partielle de titre.
+     *
+     * @param titre texte recherché
+     * @return liste d'albums correspondants
+     */
     public List<Album> rechercherAlbumsParTitre(String titre) {
         List<Album> resultats = new ArrayList<>();
 
@@ -118,6 +187,12 @@ public class Catalogue {
         return resultats;
     }
 
+    /**
+     * Recherche des artistes par correspondance partielle de nom.
+     *
+     * @param nom nom recherché
+     * @return liste d'artistes correspondants
+     */
     public List<Artiste> rechercherArtistesParNom(String nom) {
         List<Artiste> resultats = new ArrayList<>();
 
@@ -135,6 +210,12 @@ public class Catalogue {
         return resultats;
     }
 
+    /**
+     * Recherche des groupes par correspondance partielle de nom.
+     *
+     * @param nom nom recherché
+     * @return liste de groupes correspondants
+     */
     public List<Groupe> rechercherGroupesParNom(String nom) {
         List<Groupe> resultats = new ArrayList<>();
 
@@ -152,6 +233,12 @@ public class Catalogue {
         return resultats;
     }
 
+    /**
+     * Retourne les morceaux interprétés par un artiste donné.
+     *
+     * @param nomArtiste nom de l'artiste
+     * @return morceaux de cet artiste
+     */
     public List<Morceau> getMorceauxParArtiste(String nomArtiste) {
         List<Morceau> resultats = new ArrayList<>();
 
@@ -165,6 +252,12 @@ public class Catalogue {
         return resultats;
     }
 
+    /**
+     * Retourne les albums d'un artiste donné.
+     *
+     * @param nomArtiste nom de l'artiste
+     * @return albums de cet artiste
+     */
     public List<Album> getAlbumsParArtiste(String nomArtiste) {
         List<Album> resultats = new ArrayList<>();
 
@@ -178,6 +271,12 @@ public class Catalogue {
         return resultats;
     }
 
+    /**
+     * Retourne les morceaux interprétés par un groupe donné.
+     *
+     * @param nomGroupe nom du groupe
+     * @return morceaux de ce groupe
+     */
     public List<Morceau> getMorceauxParGroupe(String nomGroupe) {
         List<Morceau> resultats = new ArrayList<>();
 
@@ -191,6 +290,12 @@ public class Catalogue {
         return resultats;
     }
 
+    /**
+     * Retourne les albums d'un groupe donné.
+     *
+     * @param nomGroupe nom du groupe
+     * @return albums de ce groupe
+     */
     public List<Album> getAlbumsParGroupe(String nomGroupe) {
         List<Album> resultats = new ArrayList<>();
 
@@ -255,6 +360,11 @@ public class Catalogue {
         return meilleur;
     }
 
+    /**
+     * Calcule l'album le plus écouté (somme des écoutes de ses morceaux).
+     *
+     * @return album le plus écouté, ou {@code null} si aucun album
+     */
     public Album getAlbumLePlusEcoute() {
         Album meilleurAlbum = null;
         int maxEcoutesAlbum = -1;
@@ -274,6 +384,11 @@ public class Catalogue {
         return meilleurAlbum;
     }
 
+    /**
+     * Calcule l'interprète (artiste ou groupe) le plus écouté.
+     *
+     * @return interprète le plus écouté, ou {@code null} si catalogue vide
+     */
     public Interprete getInterpreteLePlusEcoute() {
         Interprete meilleur = null;
         int maxEcoutes = -1;
@@ -320,12 +435,22 @@ public class Catalogue {
         return tries;
     }
 
+    /**
+     * Retourne une copie des morceaux triés par durée croissante.
+     *
+     * @return liste triée par durée
+     */
     public List<Morceau> getMorceauxTriesParDuree() {
         List<Morceau> tries = new ArrayList<>(morceaux);
         tries.sort(Comparator.comparingInt(Morceau::getDuree));
         return tries;
     }
 
+    /**
+     * Retourne une copie des morceaux triés par nombre d'écoutes décroissant.
+     *
+     * @return liste triée par popularité
+     */
     public List<Morceau> getMorceauxTriesParEcoutes() {
         List<Morceau> tries = new ArrayList<>(morceaux);
         tries.sort(Comparator.comparingInt(Morceau::getNbEcoutes).reversed());

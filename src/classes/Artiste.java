@@ -1,8 +1,16 @@
 package classes;
 
+/**
+ * Représente un artiste solo.
+ */
 public class Artiste implements Interprete {
     private String nom;
 
+    /**
+     * Crée un artiste.
+     *
+     * @param nom nom de l'artiste
+     */
     public Artiste(String nom) {
         this.nom = nom;
     }

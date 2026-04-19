@@ -8,6 +8,12 @@ import java.util.List;
 public class AuthentificationService {
 
     /**
+     * Crée un service d'authentification sans état.
+     */
+    public AuthentificationService() {
+    }
+
+    /**
      * Verifie des identifiants et retourne l'utilisateur correspondant.
      * Les administrateurs sont testes en priorite, puis les abonnes non suspendus.
      *

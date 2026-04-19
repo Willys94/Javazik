@@ -17,6 +17,16 @@ public class Morceau {
     private Interprete interprete;
     private Map<String, Avis> avisParAbonne;
 
+    /**
+     * Construit un morceau.
+     *
+     * @param id identifiant du morceau
+     * @param titre titre du morceau
+     * @param duree durée en secondes
+     * @param style style musical
+     * @param nbEcoutes nombre initial d'écoutes
+     * @param interprete interprète principal
+     */
     public Morceau(int id, String titre, int duree, String style, int nbEcoutes, Interprete interprete) {
         this.id = id;
         this.titre = titre;
@@ -27,46 +37,99 @@ public class Morceau {
         this.avisParAbonne = new LinkedHashMap<>();
     }
 
+    /**
+     * Retourne l'identifiant du morceau.
+     *
+     * @return identifiant
+     */
     public int getId() {
         return id;
     }
 
+    /**
+     * Retourne le titre.
+     *
+     * @return titre du morceau
+     */
     public String getTitre() {
         return titre;
     }
 
+    /**
+     * Retourne la durée.
+     *
+     * @return durée en secondes
+     */
     public int getDuree() {
         return duree;
     }
 
+    /**
+     * Retourne le style musical.
+     *
+     * @return style
+     */
     public String getStyle() {
         return style;
     }
 
+    /**
+     * Retourne le nombre d'écoutes.
+     *
+     * @return compteur d'écoutes
+     */
     public int getNbEcoutes() {
         return nbEcoutes;
     }
 
+    /**
+     * Retourne l'interprète du morceau.
+     *
+     * @return interprète
+     */
     public Interprete getInterprete() {
         return interprete;
     }
 
+    /**
+     * Modifie le titre.
+     *
+     * @param titre nouveau titre
+     */
     public void setTitre(String titre) {
         this.titre = titre;
     }
 
+    /**
+     * Modifie la durée.
+     *
+     * @param duree nouvelle durée en secondes
+     */
     public void setDuree(int duree) {
         this.duree = duree;
     }
 
+    /**
+     * Modifie le style.
+     *
+     * @param style nouveau style
+     */
     public void setStyle(String style) {
         this.style = style;
     }
 
+    /**
+     * Modifie l'interprète.
+     *
+     * @param interprete nouvel interprète
+     */
     public void setInterprete(Interprete interprete) {
         this.interprete = interprete;
     }
 
+    /**
+     * Incrémente le compteur d'écoutes.
+     */
     public void incrementerEcoutes() {
         this.nbEcoutes++;
     }
@@ -117,11 +180,21 @@ public class Morceau {
         return (double) total / avisParAbonne.size();
     }
 
+    /**
+     * Retourne les avis indexés par login d'abonné.
+     *
+     * @return vue non modifiable des avis
+     */
     public Map<String, Avis> getAvisParAbonne() {
         return Collections.unmodifiableMap(avisParAbonne);
     }
 
-    /** Duree en secondes au format minutes:secondes (ex. 3:05). */
+    /**
+     * Formate une durée en secondes au format minutes:secondes.
+     *
+     * @param secondes durée en secondes
+     * @return durée formatée (ex. 3:05)
+     */
     public static String formaterDuree(int secondes) {
         if (secondes < 0) {
             secondes = 0;
