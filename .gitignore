@@ -34,3 +34,7 @@ bin/
 ### OS ###
 .DS_Store
 Thumbs.db
+
+### JavaDoc (sorties temporaires / rapports locaux) ###
+tmp-javadoc/
+javadoc-warnings.txt
