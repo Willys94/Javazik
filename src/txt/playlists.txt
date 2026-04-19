@@ -1,4 +1,6 @@
 willys;MaPlaylist;1,2
 willys;j;
 alice;Favorites;1
+alice;playlist test;
+bob;test;3
 testpersist76519;PL_TEST_50572;

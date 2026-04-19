@@ -34,6 +34,11 @@ public class Playlist {
         }
     }
 
+    /**
+     * Retire un morceau de la playlist.
+     *
+     * @param morceau morceau à retirer
+     */
     public void retirerMorceau(Morceau morceau) {
         morceaux.remove(morceau);
     }
@@ -47,14 +52,29 @@ public class Playlist {
         this.nom = nouveauNom;
     }
 
+    /**
+     * Retourne le nom de la playlist.
+     *
+     * @return nom de la playlist
+     */
     public String getNom() {
         return nom;
     }
 
+    /**
+     * Retourne les morceaux de la playlist.
+     *
+     * @return liste des morceaux
+     */
     public List<Morceau> getMorceaux() {
         return morceaux;
     }
 
+    /**
+     * Retourne le propriétaire de la playlist.
+     *
+     * @return abonné propriétaire
+     */
     public Abonne getProprietaire() {
         return proprietaire;
     }

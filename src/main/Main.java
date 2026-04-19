@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Scanner;
 
 
+/**
+ * Classe de démarrage de l'application Javazik.
+ */
 public class Main {
 
     /**

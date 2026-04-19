@@ -32,6 +32,7 @@ public class JavazikController {
      * @param abonnes liste des abonnes
      * @param administrateurs liste des administrateurs
      * @param authService service d'authentification
+     * @param persistenceService service de persistance
      */
     public JavazikController(
             ConsoleView vue,

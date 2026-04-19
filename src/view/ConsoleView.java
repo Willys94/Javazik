@@ -3,13 +3,24 @@ package view;
 import java.util.Scanner;
 import java.util.InputMismatchException;
 
+/**
+ * Gère les entrées/sorties console de l'application.
+ */
 public class ConsoleView {
     private final Scanner clavier;
 
+    /**
+     * Crée une vue console associée à un scanner.
+     *
+     * @param clavier scanner de lecture utilisateur
+     */
     public ConsoleView(Scanner clavier) {
         this.clavier = clavier;
     }
 
+    /**
+     * Affiche le menu d'accueil principal.
+     */
     public void afficherMenuAccueil() {
         System.out.println("\n===== BIENVENUE SUR JAVAZIK =====");
         System.out.println("1. Se connecter");
@@ -19,14 +30,29 @@ public class ConsoleView {
         System.out.print("Votre choix : ");
     }
 
+    /**
+     * Affiche une ligne de message.
+     *
+     * @param message texte à afficher
+     */
     public void afficherMessage(String message) {
         System.out.println(message);
     }
 
+    /**
+     * Affiche un prompt sans retour à la ligne.
+     *
+     * @param prompt invite de saisie
+     */
     public void afficherPrompt(String prompt) {
         System.out.print(prompt);
     }
 
+    /**
+     * Lit un entier et redemande tant que la saisie est invalide.
+     *
+     * @return entier saisi par l'utilisateur
+     */
     public int lireEntier() {
         while (true) {
             try {
@@ -40,6 +66,11 @@ public class ConsoleView {
         }
     }
 
+    /**
+     * Lit une ligne complète saisie par l'utilisateur.
+     *
+     * @return texte saisi
+     */
     public String lireLigne() {
         return clavier.nextLine();
     }

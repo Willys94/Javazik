@@ -5,13 +5,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+/**
+ * Utilitaire statique de lecture et d'écriture des fichiers de données.
+ */
 public class GestionFichier {
+
+    /**
+     * Constructeur privé : classe utilitaire.
+     */
+    private GestionFichier() {
+    }
 
 
     /**
      * Charge la liste des abonnés depuis un fichier texte.
      * Format attendu : id;login;motdepasse;suspendu
      * Exemple       : 1;willys;0000;false
+     *
+     * @param chemin chemin du fichier source
+     * @return liste d'abonnés chargés
      */
     public static List<Abonne> chargerAbonnes(String chemin) {
         List<Abonne> abonnes = new ArrayList<>();
@@ -48,6 +60,9 @@ public class GestionFichier {
      * Charge la liste des administrateurs depuis un fichier texte.
      * Format attendu : id;login;motdepasse
      * Exemple       : 99;admin;1234
+     *
+     * @param chemin chemin du fichier source
+     * @return liste d'administrateurs chargés
      */
     public static List<Administrateur> chargerAdministrateurs(String chemin) {
         List<Administrateur> administrateurs = new ArrayList<>();
@@ -80,6 +95,9 @@ public class GestionFichier {
      * Charge la liste des artistes depuis un fichier texte.
      * Format attendu : id;nom
      * Exemple       : 1;Noichi
+     *
+     * @param chemin chemin du fichier source
+     * @return liste d'artistes chargés
      */
     public static List<Artiste> chargerArtistes(String chemin) {
         List<Artiste> artistes = new ArrayList<>();
@@ -109,6 +127,9 @@ public class GestionFichier {
      * Charge la liste des groupes depuis un fichier texte.
      * Format attendu : id;nom
      * Exemple       : 1;La Mifa
+     *
+     * @param chemin chemin du fichier source
+     * @return liste de groupes chargés
      */
     public static List<Groupe> chargerGroupes(String chemin) {
         List<Groupe> groupes = new ArrayList<>();
@@ -142,6 +163,11 @@ public class GestionFichier {
      *
      * Si l'interprète existe déjà dans les listes fournies, on le réutilise.
      * Sinon on en crée un nouveau (mais il ne sera pas ajouté au catalogue ici).
+     *
+     * @param chemin chemin du fichier source
+     * @param artistes liste d'artistes existants, potentiellement enrichie
+     * @param groupes liste de groupes existants, potentiellement enrichie
+     * @return liste de morceaux chargés
      */
     public static List<Morceau> chargerMorceaux(String chemin,
                                                 List<Artiste> artistes,
@@ -191,6 +217,12 @@ public class GestionFichier {
      * Exemple       : 1;Album test;2024;ARTISTE;Noichi;1,2
      *
      * Les morceaux sont retrouvés par ID dans la liste fournie.
+     *
+     * @param chemin chemin du fichier source
+     * @param catalogue catalogue à enrichir
+     * @param artistes artistes connus
+     * @param groupes groupes connus
+     * @param morceaux morceaux connus pour résoudre les IDs
      */
     public static void chargerAlbums(String chemin,
                                      Catalogue catalogue,
@@ -253,6 +285,10 @@ public class GestionFichier {
      *
      * Si le login ne correspond à aucun abonné, la ligne est ignorée.
      * Les morceaux sont retrouvés par ID dans la liste fournie.
+     *
+     * @param chemin chemin du fichier source
+     * @param abonnes abonnés existants
+     * @param morceaux morceaux disponibles pour les playlists
      */
     public static void chargerPlaylists(String chemin,
                                         List<Abonne> abonnes,
@@ -306,6 +342,9 @@ public class GestionFichier {
     /**
      * Sauvegarde la liste des abonnés dans un fichier texte.
      * Format écrit : id;login;motdepasse;suspendu
+     *
+     * @param chemin chemin du fichier cible
+     * @param abonnes abonnés à sauvegarder
      */
     public static void sauvegarderAbonnes(String chemin, List<Abonne> abonnes) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(chemin, false))) {
@@ -322,6 +361,9 @@ public class GestionFichier {
     /**
      * Sauvegarde la liste des artistes dans un fichier texte.
      * Format écrit : id;nom  (l'id est généré selon la position dans la liste)
+     *
+     * @param chemin chemin du fichier cible
+     * @param artistes artistes à sauvegarder
      */
     public static void sauvegarderArtistes(String chemin, List<Artiste> artistes) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(chemin, false))) {
@@ -338,6 +380,9 @@ public class GestionFichier {
     /**
      * Sauvegarde la liste des groupes dans un fichier texte.
      * Format écrit : id;nom
+     *
+     * @param chemin chemin du fichier cible
+     * @param groupes groupes à sauvegarder
      */
     public static void sauvegarderGroupes(String chemin, List<Groupe> groupes) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(chemin, false))) {
@@ -354,6 +399,9 @@ public class GestionFichier {
     /**
      * Sauvegarde la liste des morceaux dans un fichier texte.
      * Format écrit : id;titre;duree;style;nbEcoutes;typeInterprete;nomInterprete
+     *
+     * @param chemin chemin du fichier cible
+     * @param morceaux morceaux à sauvegarder
      */
     public static void sauvegarderMorceaux(String chemin, List<Morceau> morceaux) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(chemin, false))) {
@@ -377,6 +425,9 @@ public class GestionFichier {
     /**
      * Sauvegarde la liste des albums dans un fichier texte.
      * Format écrit : id;titre;annee;typeInterprete;nomInterprete;idMorceau1,idMorceau2,...
+     *
+     * @param chemin chemin du fichier cible
+     * @param albums albums à sauvegarder
      */
     public static void sauvegarderAlbums(String chemin, List<Album> albums) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(chemin, false))) {
@@ -407,6 +458,9 @@ public class GestionFichier {
     /**
      * Sauvegarde toutes les playlists de tous les abonnés dans un fichier texte.
      * Format écrit : loginAbonne;nomPlaylist;idMorceau1,idMorceau2,...
+     *
+     * @param chemin chemin du fichier cible
+     * @param abonnes abonnés dont les playlists sont sauvegardées
      */
     public static void sauvegarderPlaylists(String chemin, List<Abonne> abonnes) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(chemin, false))) {
