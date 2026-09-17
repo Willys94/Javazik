@@ -1,17 +1,23 @@
 # JAVAZIK
 
-## Description
+Application Java de gestion d'un catalogue musical et de playlists.
+Architecture MVC, deux interfaces interchangeables (console et Swing),
+persistance par sérialisation.
 
-JAVAZIK est une application Java en console permettant de gérer un catalogue musical.  
-L’application propose trois modes d’utilisation :
-- administrateur
-- abonné
-- invité
+Projet réalisé à l'ECE Paris, mars-avril 2026, en équipe de 4.
 
-Un utilisateur peut se connecter, créer un compte abonné ou entrer en tant qu’invité.  
-Selon son rôle, il peut consulter le catalogue, rechercher des morceaux, albums, artistes ou groupes, gérer des playlists, écouter des morceaux ou administrer le catalogue.
+## Architecture
 
----
+Architecture MVC, quatre packages :
+
+- `classes` — modèle et logique métier
+- `controller` — contrôleurs
+- `view` — les deux vues, console et Swing
+- `main` — point d'entrée
+
+Les deux vues s'appuient sur le même modèle et sont interchangeables.
+L'état de l'application (catalogue, comptes, playlists, historiques)
+est persisté par sérialisation Java.
 
 ## Fonctionnalités principales
 
@@ -52,6 +58,10 @@ Le projet est organisé autour des classes principales suivantes :
 - `Interprete` : interface commune à `Artiste` et `Groupe`
 
 ---
+
+## Lancer l'application
+
+java -jar Javazik.jar
 
 ## Documentation (JavaDoc HTML)
 
