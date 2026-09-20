@@ -61,7 +61,9 @@ Le projet est organisé autour des classes principales suivantes :
 
 ## Lancer l'application
 
+```bash
 java -jar Javazik.jar
+```
 
 ## Documentation (JavaDoc HTML)
 
